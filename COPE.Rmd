@@ -1,0 +1,80 @@
+---
+title: "R Notebook"
+author: "Simon Schwab"
+date: "17 Aug 2017"
+output:
+  html_document: default
+  html_notebook: default
+---
+
+## Libraries and loading data
+```{r}
+library(MASS)
+
+load("COPE_impM20.Rdata")
+```
+
+## Descriptives at 24 months
+```{r}
+
+t_24  = rep(FALSE, N*4)
+t_24[481:600] = TRUE;
+#summary(data.avg[t_24,])
+```
+
+## Gender
+```{r}
+summary(data.avg$sex[t_24 & is.assip]) # ASSIP
+summary(data.avg$sex[t_24 & is.cg]) # Control group
+summary(data.avg$sex[t_24]) # all
+```
+
+## Age
+```{r}
+c(mean(data.avg$age[t_24 & is.assip]), sd(data.avg$age[t_24 & is.assip]))
+c(mean(data.avg$age[t_24 & is.cg]), sd(data.avg$age[t_24 & is.cg]))
+c(mean(data.avg$age[t_24 ]), sd(data.avg$age[t_24]))
+```
+
+## ASSIP Group
+### Stepwise regression of BSS
+```{r}
+i = data.avg$time ==24 & data.avg$ITT == 'ASSIP & ASSIP Drop out'
+d = subset(data.avg, i)
+
+fit = lm(BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + inst_supo + behav_diseng + 
+           venting + pos_refram + planning + humor + accept + relig  + self_blame + 
+           bdisum + previoussuicide_live_all, data = d)
+
+step = stepAIC(fit, direction="both", trace = F)
+step$anova
+```
+
+### Final model
+```{r}
+fit = lm(BSSsum ~ act_cop + subst_use + bdisum + previoussuicide_live_all, data = d)
+summary(fit)
+```
+
+## Control Group
+### Stepwise regression of BSS
+```{r}
+i = data.avg$time ==24 & data.avg$ITT == 'CG & CG Drop out'
+d = subset(data.avg, i)
+
+fit = lm(BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + inst_supo + behav_diseng + 
+           venting + pos_refram + planning + humor + accept + relig  + self_blame + 
+           bdisum + previoussuicide_live_all, data = d)
+
+step = stepAIC(fit, direction="both", trace = F)
+step$anova
+```
+
+### Final model
+```{r}
+fit = lm(BSSsum ~ self_dis + emo_supo + inst_supo + behav_diseng + venting + 
+           pos_refram + bdisum + previoussuicide_live_all, data = d)
+summary(fit)
+```
+
+
