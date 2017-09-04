@@ -11,7 +11,7 @@
 
 <meta name="author" content="Simon Schwab" />
 
-<meta name="date" content="2017-08-17" />
+<meta name="date" content="2017-09-04" />
 
 <title>R Notebook</title>
 
@@ -119,14 +119,20 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">R Notebook</h1>
 <h4 class="author"><em>Simon Schwab</em></h4>
-<h4 class="date"><em>17 Aug 2017</em></h4>
+<h4 class="date"><em>04 Sep 2017</em></h4>
 
 </div>
 
 
 <div id="libraries-and-loading-data" class="section level2">
 <h2>Libraries and loading data</h2>
-<pre class="r"><code>library(MASS)
+<pre class="r"><code># install.packages(&quot;MASS&quot;)
+# install.packages(&quot;ggplot2&quot;)
+# install.packages(&quot;cowplot&quot;)
+# install.packages(&quot;Hmisc&quot;)
+# install.packages(&quot;car&quot;)
+
+library(MASS)
 library(ggplot2)
 library(cowplot)</code></pre>
 <pre><code>## 
@@ -143,7 +149,9 @@ library(cowplot)</code></pre>
 <pre><code>## The following objects are masked from 'package:base':
 ## 
 ##     format.pval, round.POSIXt, trunc.POSIXt, units</code></pre>
-<pre class="r"><code>load(&quot;COPE_impM20.Rdata&quot;)</code></pre>
+<pre class="r"><code>library(car)
+
+load(&quot;COPE_impM20.Rdata&quot;)</code></pre>
 </div>
 <div id="descriptives-at-24-months" class="section level2">
 <h2>Descriptives at 24 months</h2>
@@ -174,17 +182,84 @@ t_24[481:600] = TRUE;
 </div>
 <div id="assip-group" class="section level2">
 <h2>ASSIP Group</h2>
-<div id="stepwise-regression-of-bss" class="section level3">
-<h3>Stepwise regression of BSS</h3>
 <pre class="r"><code>i = data.avg$time ==24 &amp; data.avg$ITT == 'ASSIP &amp; ASSIP Drop out'
 d = subset(data.avg, i)
 
-fit = lm(BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + inst_supo + behav_diseng + 
-           venting + pos_refram + planning + humor + accept + relig  + self_blame + 
-           bdisum + previoussuicide_live_all, data = d)
-
-step = stepAIC(fit, direction=&quot;both&quot;, trace = F)
-step$anova</code></pre>
+fit1 = lm(BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + inst_supo + behav_diseng + 
+            venting + pos_refram + planning + humor + accept + relig  + self_blame + 
+            bdisum + previoussuicide_live_all, data = d)
+fit2 = lm(BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + behav_diseng + 
+           venting + pos_refram + planning + humor + accept + relig + 
+           bdisum + previoussuicide_live_all, data = d)</code></pre>
+<div id="multicollinearity" class="section level3">
+<h3>Multicollinearity</h3>
+<pre class="r"><code>x = cbind(d$self_dis, d$act_cop, d$denial, d$subst_use, d$emo_supo, d$inst_supo, d$behav_diseng,
+          d$venting, d$pos_refram, d$planning, d$humor, d$accept, d$relig, d$self_blame,
+          d$bdisum, d$previoussuicide_live_all)
+print(round(cor(x)*100), digits = 2)</code></pre>
+<pre><code>##       [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12] [,13]
+##  [1,]  100   55   17    3   43   29  -24   12   44    46   -11     5     9
+##  [2,]   55  100    3   -8   52   48  -39   21   42    63   -27     2    20
+##  [3,]   17    3  100   15    0   -5   36   35   19     0    28    10     1
+##  [4,]    3   -8   15  100  -14    5   20   12  -12    -2     7    -2   -12
+##  [5,]   43   52    0  -14  100   74  -27   12   48    58    -9    -1    21
+##  [6,]   29   48   -5    5   74  100  -37   13   37    52   -20   -17    18
+##  [7,]  -24  -39   36   20  -27  -37  100    5  -10   -33    13    20   -16
+##  [8,]   12   21   35   12   12   13    5  100    7    12    19    -4     9
+##  [9,]   44   42   19  -12   48   37  -10    7  100    53    -4    24    22
+## [10,]   46   63    0   -2   58   52  -33   12   53   100   -32    -9    24
+## [11,]  -11  -27   28    7   -9  -20   13   19   -4   -32   100    24   -10
+## [12,]    5    2   10   -2   -1  -17   20   -4   24    -9    24   100   -23
+## [13,]    9   20    1  -12   21   18  -16    9   22    24   -10   -23   100
+## [14,]    1  -23    9   45   -2   12   17   21  -15    -1    14     9   -31
+## [15,]   -3  -33   12   55  -42  -15   28   13  -16   -22     6   -11   -15
+## [16,]   10    5  -15   39   -4    4   -2  -13   -9     8   -15   -11    -7
+##       [,14] [,15] [,16]
+##  [1,]     1    -3    10
+##  [2,]   -23   -33     5
+##  [3,]     9    12   -15
+##  [4,]    45    55    39
+##  [5,]    -2   -42    -4
+##  [6,]    12   -15     4
+##  [7,]    17    28    -2
+##  [8,]    21    13   -13
+##  [9,]   -15   -16    -9
+## [10,]    -1   -22     8
+## [11,]    14     6   -15
+## [12,]     9   -11   -11
+## [13,]   -31   -15    -7
+## [14,]   100    57    39
+## [15,]    57   100    50
+## [16,]    39    50   100</code></pre>
+<pre class="r"><code>vif(fit1) &gt; 4</code></pre>
+<pre><code>##                 self_dis                  act_cop                   denial 
+##                    FALSE                    FALSE                    FALSE 
+##                subst_use                 emo_supo                inst_supo 
+##                    FALSE                     TRUE                    FALSE 
+##             behav_diseng                  venting               pos_refram 
+##                    FALSE                    FALSE                    FALSE 
+##                 planning                    humor                   accept 
+##                    FALSE                    FALSE                    FALSE 
+##                    relig               self_blame                   bdisum 
+##                    FALSE                    FALSE                    FALSE 
+## previoussuicide_live_all 
+##                    FALSE</code></pre>
+<pre class="r"><code>vif(fit2) &gt; 4</code></pre>
+<pre><code>##                 self_dis                  act_cop                   denial 
+##                    FALSE                    FALSE                    FALSE 
+##                subst_use                 emo_supo             behav_diseng 
+##                    FALSE                    FALSE                    FALSE 
+##                  venting               pos_refram                 planning 
+##                    FALSE                    FALSE                    FALSE 
+##                    humor                   accept                    relig 
+##                    FALSE                    FALSE                    FALSE 
+##                   bdisum previoussuicide_live_all 
+##                    FALSE                    FALSE</code></pre>
+</div>
+<div id="stepwise-regression-of-bss" class="section level3">
+<h3>Stepwise regression of BSS</h3>
+<pre class="r"><code>step1 = stepAIC(fit1, direction=&quot;both&quot;, trace = F)
+step1$anova</code></pre>
 <pre><code>## Stepwise Model Path 
 ## Analysis of Deviance Table
 ## 
@@ -211,6 +286,32 @@ step$anova</code></pre>
 ## 11   - self_blame  1 14.7051120        53   725.7477 163.5715
 ## 12     - planning  1 20.7313030        54   746.4790 163.2614
 ## 13        - humor  1 15.3571414        55   761.8362 162.4832</code></pre>
+<pre class="r"><code>step2 = stepAIC(fit2, direction=&quot;both&quot;, trace = F)
+step2$anova</code></pre>
+<pre><code>## Stepwise Model Path 
+## Analysis of Deviance Table
+## 
+## Initial Model:
+## BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + 
+##     behav_diseng + venting + pos_refram + planning + humor + 
+##     accept + relig + bdisum + previoussuicide_live_all
+## 
+## Final Model:
+## BSSsum ~ act_cop + subst_use + bdisum + previoussuicide_live_all
+## 
+## 
+##              Step Df  Deviance Resid. Df Resid. Dev      AIC
+## 1                                     45   681.7090 175.8155
+## 2         - relig  1  1.361844        46   683.0708 173.9352
+## 3    - pos_refram  1  2.388093        47   685.4589 172.1446
+## 4        - accept  1  1.587434        48   687.0464 170.2834
+## 5  - behav_diseng  1  3.903189        49   690.9496 168.6233
+## 6      - emo_supo  1  4.879652        50   695.8292 167.0456
+## 7      - self_dis  1  3.615124        51   699.4443 165.3565
+## 8        - denial  1  8.248612        52   707.6930 164.0599
+## 9       - venting  1 18.054755        53   725.7477 163.5715
+## 10     - planning  1 20.731303        54   746.4790 163.2614
+## 11        - humor  1 15.357141        55   761.8362 162.4832</code></pre>
 </div>
 <div id="final-model" class="section level3">
 <h3>Final model</h3>
@@ -242,17 +343,84 @@ summary(fit)</code></pre>
 </div>
 <div id="control-group" class="section level2">
 <h2>Control Group</h2>
-<div id="stepwise-regression-of-bss-1" class="section level3">
-<h3>Stepwise regression of BSS</h3>
 <pre class="r"><code>i = data.avg$time ==24 &amp; data.avg$ITT == 'CG &amp; CG Drop out'
 d = subset(data.avg, i)
 
-fit = lm(BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + inst_supo + behav_diseng + 
-           venting + pos_refram + planning + humor + accept + relig  + self_blame + 
-           bdisum + previoussuicide_live_all, data = d)
-
-step = stepAIC(fit, direction=&quot;both&quot;, trace = F)
-step$anova</code></pre>
+fit1 = lm(BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + inst_supo + behav_diseng + 
+            venting + pos_refram + planning + humor + accept + relig  + self_blame + 
+            bdisum + previoussuicide_live_all, data = d)
+fit2 = lm(BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + behav_diseng + 
+           venting + pos_refram + planning + humor + accept + relig + 
+           bdisum + previoussuicide_live_all, data = d)</code></pre>
+<div id="multicollinearity-1" class="section level3">
+<h3>Multicollinearity</h3>
+<pre class="r"><code>x = cbind(d$self_dis, d$act_cop, d$denial, d$subst_use, d$emo_supo, d$inst_supo, d$behav_diseng,
+          d$venting, d$pos_refram, d$planning, d$humor, d$accept, d$relig, d$self_blame,
+          d$bdisum, d$previoussuicide_live_all)
+print(round(cor(x)*100), digits = 2)</code></pre>
+<pre><code>##       [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12] [,13]
+##  [1,]  100   35   26  -14   35   22   22   27   10    29    38    13   -27
+##  [2,]   35  100    1  -12   47   37  -26   13   29    59    17    46    -5
+##  [3,]   26    1  100    6    2    8   26   29   27     0     8   -11    -7
+##  [4,]  -14  -12    6  100  -15   -6   23   -1  -14   -20    -9   -15   -27
+##  [5,]   35   47    2  -15  100   83  -29   12   29    43     5    12    28
+##  [6,]   22   37    8   -6   83  100  -28   10   24    38    -1     2    33
+##  [7,]   22  -26   26   23  -29  -28  100   29    0   -24    36     2   -47
+##  [8,]   27   13   29   -1   12   10   29  100    0     0    18    17     2
+##  [9,]   10   29   27  -14   29   24    0    0  100    30    14    13     8
+## [10,]   29   59    0  -20   43   38  -24    0   30   100    18    34     6
+## [11,]   38   17    8   -9    5   -1   36   18   14    18   100     7   -29
+## [12,]   13   46  -11  -15   12    2    2   17   13    34     7   100   -16
+## [13,]  -27   -5   -7  -27   28   33  -47    2    8     6   -29   -16   100
+## [14,]   16  -27   -2   23  -12    3    8    1  -10   -20    12   -19   -15
+## [15,]   -1  -41  -11   53   -2    9   17  -11  -34   -39    -8   -44   -12
+## [16,]    0    1   -3    7    4    2   -3    6  -19   -13   -15    -7     9
+##       [,14] [,15] [,16]
+##  [1,]    16    -1     0
+##  [2,]   -27   -41     1
+##  [3,]    -2   -11    -3
+##  [4,]    23    53     7
+##  [5,]   -12    -2     4
+##  [6,]     3     9     2
+##  [7,]     8    17    -3
+##  [8,]     1   -11     6
+##  [9,]   -10   -34   -19
+## [10,]   -20   -39   -13
+## [11,]    12    -8   -15
+## [12,]   -19   -44    -7
+## [13,]   -15   -12     9
+## [14,]   100    59   -14
+## [15,]    59   100    12
+## [16,]   -14    12   100</code></pre>
+<pre class="r"><code>vif(fit1) &gt; 4</code></pre>
+<pre><code>##                 self_dis                  act_cop                   denial 
+##                    FALSE                    FALSE                    FALSE 
+##                subst_use                 emo_supo                inst_supo 
+##                    FALSE                     TRUE                    FALSE 
+##             behav_diseng                  venting               pos_refram 
+##                    FALSE                    FALSE                    FALSE 
+##                 planning                    humor                   accept 
+##                    FALSE                    FALSE                    FALSE 
+##                    relig               self_blame                   bdisum 
+##                    FALSE                    FALSE                     TRUE 
+## previoussuicide_live_all 
+##                    FALSE</code></pre>
+<pre class="r"><code>vif(fit2) &gt; 4</code></pre>
+<pre><code>##                 self_dis                  act_cop                   denial 
+##                    FALSE                    FALSE                    FALSE 
+##                subst_use                 emo_supo             behav_diseng 
+##                    FALSE                    FALSE                    FALSE 
+##                  venting               pos_refram                 planning 
+##                    FALSE                    FALSE                    FALSE 
+##                    humor                   accept                    relig 
+##                    FALSE                    FALSE                    FALSE 
+##                   bdisum previoussuicide_live_all 
+##                    FALSE                    FALSE</code></pre>
+</div>
+<div id="stepwise-regression-of-bss-1" class="section level3">
+<h3>Stepwise regression of BSS</h3>
+<pre class="r"><code>step1 = stepAIC(fit1, direction=&quot;both&quot;, trace = F)
+step1$anova</code></pre>
 <pre><code>## Stepwise Model Path 
 ## Analysis of Deviance Table
 ## 
@@ -276,39 +444,61 @@ step$anova</code></pre>
 ## 7      - relig  1  2.6289555        49   597.4160 159.8961
 ## 8      - humor  1  4.3589591        50   601.7750 158.3323
 ## 9 - self_blame  1 14.8589000        51   616.6339 157.7959</code></pre>
+<pre class="r"><code>step2 = stepAIC(fit2, direction=&quot;both&quot;, trace = F)
+step2$anova</code></pre>
+<pre><code>## Stepwise Model Path 
+## Analysis of Deviance Table
+## 
+## Initial Model:
+## BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + 
+##     behav_diseng + venting + pos_refram + planning + humor + 
+##     accept + relig + bdisum + previoussuicide_live_all
+## 
+## Final Model:
+## BSSsum ~ self_dis + behav_diseng + venting + pos_refram + bdisum + 
+##     previoussuicide_live_all
+## 
+## 
+##          Step Df    Deviance Resid. Df Resid. Dev      AIC
+## 1                                   45   624.7646 170.5818
+## 2    - accept  1  0.03217689        46   624.7968 168.5849
+## 3  - planning  1  0.13410414        47   624.9309 166.5978
+## 4    - denial  1  0.72833402        48   625.6592 164.6677
+## 5   - act_cop  1  1.30020182        49   626.9594 162.7922
+## 6 - subst_use  1  2.34105258        50   629.3005 161.0159
+## 7     - relig  1  5.18635175        51   634.4869 159.5083
+## 8     - humor  1  6.35211425        52   640.8390 158.1060
+## 9  - emo_supo  1 12.81709105        53   653.6561 157.2942</code></pre>
 </div>
 <div id="final-model-1" class="section level3">
 <h3>Final model</h3>
-<pre class="r"><code>fit = lm(BSSsum ~ self_dis + emo_supo + inst_supo + behav_diseng + venting + 
-           pos_refram + bdisum + previoussuicide_live_all, data = d)
+<pre class="r"><code>fit = lm(BSSsum ~ self_dis + behav_diseng + venting + pos_refram + bdisum + 
+    previoussuicide_live_all, data = d)
 summary(fit)</code></pre>
 <pre><code>## 
 ## Call:
-## lm(formula = BSSsum ~ self_dis + emo_supo + inst_supo + behav_diseng + 
-##     venting + pos_refram + bdisum + previoussuicide_live_all, 
-##     data = d)
+## lm(formula = BSSsum ~ self_dis + behav_diseng + venting + pos_refram + 
+##     bdisum + previoussuicide_live_all, data = d)
 ## 
 ## Residuals:
 ##     Min      1Q  Median      3Q     Max 
-## -6.9179 -2.0061 -0.0827  1.5794 12.7145 
+## -6.4037 -2.0077 -0.3865  1.4616 13.7411 
 ## 
 ## Coefficients:
 ##                          Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)               -3.6926     3.5138  -1.051  0.29825    
-## self_dis                  -2.0320     0.7692  -2.642  0.01093 *  
-## emo_supo                   2.2234     1.2739   1.745  0.08695 .  
-## inst_supo                 -1.7305     1.2231  -1.415  0.16318    
-## behav_diseng               3.1211     1.1537   2.705  0.00925 ** 
-## venting                   -1.6819     1.0555  -1.593  0.11724    
-## pos_refram                 1.5347     0.8857   1.733  0.08919 .  
-## bdisum                     0.4720     0.0641   7.363 1.45e-09 ***
-## previoussuicide_live_all   0.4753     0.2063   2.304  0.02534 *  
+## (Intercept)              -2.99074    3.34878  -0.893   0.3759    
+## self_dis                 -1.60347    0.70617  -2.271   0.0273 *  
+## behav_diseng              2.73898    1.02741   2.666   0.0102 *  
+## venting                  -1.62320    1.04286  -1.556   0.1255    
+## pos_refram                1.74361    0.83472   2.089   0.0415 *  
+## bdisum                    0.46385    0.06164   7.525 6.46e-10 ***
+## previoussuicide_live_all  0.50281    0.20763   2.422   0.0189 *  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 3.477 on 51 degrees of freedom
-## Multiple R-squared:  0.6557, Adjusted R-squared:  0.6017 
-## F-statistic: 12.14 on 8 and 51 DF,  p-value: 1.615e-09</code></pre>
+## Residual standard error: 3.512 on 53 degrees of freedom
+## Multiple R-squared:  0.635,  Adjusted R-squared:  0.5937 
+## F-statistic: 15.37 on 6 and 53 DF,  p-value: 4.147e-10</code></pre>
 </div>
 </div>
 <div id="figure-2" class="section level2">
@@ -333,7 +523,6 @@ p3 = ggplot(d, aes(x=ITT, y=emo_foc_cop, color=ITT)) +  geom_boxplot(width=0.8) 
   ggtitle(&quot;Emotion-focused&quot;) + scale_color_manual(labels = c(&quot;ASSIP&quot;, &quot;control\ngroup&quot;), values = tmp$palette(2)) + ylim(c(1,4))
 
 plot_grid(p1, p2, p3, ncol=3, nrow=1, labels=c(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;), rel_widths = c(0.62, 0.62, 1))</code></pre>
-<pre><code>## Warning: Removed 2 rows containing missing values (geom_point).</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABIAAAAGACAMAAADiTunPAAAABGdBTUEAALGPC/xhBQAAAAFzUkdC
 AK7OHOkAAAAqUExURf///wMDA7Ozs+zt7dvW1QW/xMTFxfd5cDY2NmRkZImJifSnoV/Mz7Lq7Hkr
 yOwAACAASURBVHja7J2LmqMoFIQj0Cwwyfu/7grIHTWgJlGrvtmZ7XQS8Qg/xQH08YAgCIIgCIIg
@@ -639,7 +828,8 @@ SUVORK5CYII=
 </div>
 <div id="figure-3" class="section level2">
 <h2>Figure 3</h2>
-<pre class="r"><code>tmp=scale_colour_hue()
+<pre class="r"><code># 
+tmp=scale_colour_hue()
 
 p1 = ggplot(data.avg, aes(x=as.factor(time), y=self_dis, group=ITT, color=ITT)) +
   stat_summary(geom = &quot;line&quot;, fun.y=mean) +

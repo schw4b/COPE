@@ -1,7 +1,7 @@
 ---
 title: "R Notebook"
 author: "Simon Schwab"
-date: "17 Aug 2017"
+date: "04 Sep 2017"
 output:
   html_document: default
   html_notebook: default
@@ -9,10 +9,17 @@ output:
 
 ## Libraries and loading data
 ```{r}
+# install.packages("MASS")
+# install.packages("ggplot2")
+# install.packages("cowplot")
+# install.packages("Hmisc")
+# install.packages("car")
+
 library(MASS)
 library(ggplot2)
 library(cowplot)
 library(Hmisc)
+library(car)
 
 load("COPE_impM20.Rdata")
 ```
@@ -40,17 +47,37 @@ c(mean(data.avg$age[t_24 ]), sd(data.avg$age[t_24]))
 ```
 
 ## ASSIP Group
-### Stepwise regression of BSS
 ```{r}
 i = data.avg$time ==24 & data.avg$ITT == 'ASSIP & ASSIP Drop out'
 d = subset(data.avg, i)
 
-fit = lm(BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + inst_supo + behav_diseng + 
-           venting + pos_refram + planning + humor + accept + relig  + self_blame + 
+fit1 = lm(BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + inst_supo + behav_diseng + 
+            venting + pos_refram + planning + humor + accept + relig  + self_blame + 
+            bdisum + previoussuicide_live_all, data = d)
+fit2 = lm(BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + behav_diseng + 
+           venting + pos_refram + planning + humor + accept + relig + 
            bdisum + previoussuicide_live_all, data = d)
 
-step = stepAIC(fit, direction="both", trace = F)
-step$anova
+```
+
+### Multicollinearity
+```{r}
+x = cbind(d$self_dis, d$act_cop, d$denial, d$subst_use, d$emo_supo, d$inst_supo, d$behav_diseng,
+          d$venting, d$pos_refram, d$planning, d$humor, d$accept, d$relig, d$self_blame,
+          d$bdisum, d$previoussuicide_live_all)
+print(round(cor(x)*100), digits = 2)
+
+vif(fit1) > 4
+vif(fit2) > 4
+```
+
+### Stepwise regression of BSS
+```{r}
+step1 = stepAIC(fit1, direction="both", trace = F)
+step1$anova
+
+step2 = stepAIC(fit2, direction="both", trace = F)
+step2$anova
 ```
 
 ### Final model
@@ -60,28 +87,50 @@ summary(fit)
 ```
 
 ## Control Group
-### Stepwise regression of BSS
 ```{r}
 i = data.avg$time ==24 & data.avg$ITT == 'CG & CG Drop out'
 d = subset(data.avg, i)
 
-fit = lm(BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + inst_supo + behav_diseng + 
-           venting + pos_refram + planning + humor + accept + relig  + self_blame + 
+fit1 = lm(BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + inst_supo + behav_diseng + 
+            venting + pos_refram + planning + humor + accept + relig  + self_blame + 
+            bdisum + previoussuicide_live_all, data = d)
+fit2 = lm(BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + behav_diseng + 
+           venting + pos_refram + planning + humor + accept + relig + 
            bdisum + previoussuicide_live_all, data = d)
 
-step = stepAIC(fit, direction="both", trace = F)
-step$anova
+```
+
+### Multicollinearity
+```{r}
+x = cbind(d$self_dis, d$act_cop, d$denial, d$subst_use, d$emo_supo, d$inst_supo, d$behav_diseng,
+          d$venting, d$pos_refram, d$planning, d$humor, d$accept, d$relig, d$self_blame,
+          d$bdisum, d$previoussuicide_live_all)
+print(round(cor(x)*100), digits = 2)
+
+
+vif(fit1) > 4
+vif(fit2) > 4
+```
+
+### Stepwise regression of BSS
+```{r}
+step1 = stepAIC(fit1, direction="both", trace = F)
+step1$anova
+
+step2 = stepAIC(fit2, direction="both", trace = F)
+step2$anova
+
 ```
 
 ### Final model
 ```{r}
-fit = lm(BSSsum ~ self_dis + emo_supo + inst_supo + behav_diseng + venting + 
-           pos_refram + bdisum + previoussuicide_live_all, data = d)
+fit = lm(BSSsum ~ self_dis + behav_diseng + venting + pos_refram + bdisum + 
+    previoussuicide_live_all, data = d)
 summary(fit)
 ```
 
 ## Figure 2
-```{r, fig.height=2, fig.width=6}
+```{r, fig.height=2, fig.width=6, message=FALSE, warning=FALSE}
 d = subset(data.avg, t_24)
 
 p1 = ggplot(d, aes(x=ITT, y=dysfunc_cop, color=ITT)) +   geom_boxplot(width=0.8) +
@@ -107,7 +156,7 @@ plot_grid(p1, p2, p3, ncol=3, nrow=1, labels=c("A", "B", "C"), rel_widths = c(0.
 ## Figure 3
 ```{r, fig.height=2, fig.width=6}
 
-
+# 
 tmp=scale_colour_hue()
 
 p1 = ggplot(data.avg, aes(x=as.factor(time), y=self_dis, group=ITT, color=ITT)) +
