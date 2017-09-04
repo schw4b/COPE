@@ -131,6 +131,7 @@ $(document).ready(function () {
 # install.packages(&quot;cowplot&quot;)
 # install.packages(&quot;Hmisc&quot;)
 # install.packages(&quot;car&quot;)
+# install.packages(&quot;caret&quot;)
 
 library(MASS)
 library(ggplot2)
@@ -150,8 +151,13 @@ library(cowplot)</code></pre>
 ## 
 ##     format.pval, round.POSIXt, trunc.POSIXt, units</code></pre>
 <pre class="r"><code>library(car)
-
-load(&quot;COPE_impM20.Rdata&quot;)</code></pre>
+library(caret)</code></pre>
+<pre><code>## 
+## Attaching package: 'caret'</code></pre>
+<pre><code>## The following object is masked from 'package:survival':
+## 
+##     cluster</code></pre>
+<pre class="r"><code>load(&quot;COPE_impM20.Rdata&quot;)</code></pre>
 </div>
 <div id="descriptives-at-24-months" class="section level2">
 <h2>Descriptives at 24 months</h2>
@@ -339,6 +345,13 @@ summary(fit)</code></pre>
 ## Residual standard error: 3.722 on 55 degrees of freedom
 ## Multiple R-squared:  0.6582, Adjusted R-squared:  0.6334 
 ## F-statistic: 26.48 on 4 and 55 DF,  p-value: 2.878e-12</code></pre>
+<p>Relative importance</p>
+<pre class="r"><code>varImp(fit, scale = FALSE)</code></pre>
+<pre><code>##                           Overall
+## act_cop                  3.358926
+## subst_use                2.144735
+## bdisum                   5.607221
+## previoussuicide_live_all 2.515527</code></pre>
 </div>
 </div>
 <div id="control-group" class="section level2">
@@ -499,6 +512,15 @@ summary(fit)</code></pre>
 ## Residual standard error: 3.512 on 53 degrees of freedom
 ## Multiple R-squared:  0.635,  Adjusted R-squared:  0.5937 
 ## F-statistic: 15.37 on 6 and 53 DF,  p-value: 4.147e-10</code></pre>
+<p>Relative importance</p>
+<pre class="r"><code>varImp(fit, scale = FALSE)</code></pre>
+<pre><code>##                           Overall
+## self_dis                 2.270669
+## behav_diseng             2.665915
+## venting                  1.556490
+## pos_refram               2.088864
+## bdisum                   7.524792
+## previoussuicide_live_all 2.421621</code></pre>
 </div>
 </div>
 <div id="figure-2" class="section level2">

@@ -14,12 +14,14 @@ output:
 # install.packages("cowplot")
 # install.packages("Hmisc")
 # install.packages("car")
+# install.packages("caret")
 
 library(MASS)
 library(ggplot2)
 library(cowplot)
 library(Hmisc)
 library(car)
+library(caret)
 
 load("COPE_impM20.Rdata")
 ```
@@ -86,6 +88,13 @@ fit = lm(BSSsum ~ act_cop + subst_use + bdisum + previoussuicide_live_all, data 
 summary(fit)
 ```
 
+Relative importance
+```{r}
+varImp(fit, scale = FALSE)
+```
+
+
+
 ## Control Group
 ```{r}
 i = data.avg$time ==24 & data.avg$ITT == 'CG & CG Drop out'
@@ -127,6 +136,10 @@ step2$anova
 fit = lm(BSSsum ~ self_dis + behav_diseng + venting + pos_refram + bdisum + 
     previoussuicide_live_all, data = d)
 summary(fit)
+```
+Relative importance
+```{r}
+varImp(fit, scale = FALSE)
 ```
 
 ## Figure 2
