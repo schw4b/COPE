@@ -1,7 +1,7 @@
 ---
-title: "R Notebook"
+title: "COPE"
 author: "Simon Schwab"
-date: "04 Sep 2017"
+date: "15 Sep 2017"
 output:
   html_document: default
   html_notebook: default
@@ -48,6 +48,76 @@ c(mean(data.avg$age[t_24 & is.cg]), sd(data.avg$age[t_24 & is.cg]))
 c(mean(data.avg$age[t_24 ]), sd(data.avg$age[t_24]))
 ```
 
+## Main analyses at 24-month
+```{r}
+i = data.avg$time == 24
+d = subset(data.avg, i)
+
+wilcox.test(dysfunc_cop ~ ITT, data=d)
+1-median(d$dysfunc_cop[is.assip])/median(d$dysfunc_cop[is.cg])
+
+wilcox.test(prob_foc_cop ~ ITT, data=d)
+median(d$prob_foc_cop[is.assip])/median(d$prob_foc_cop[is.cg])
+
+wilcox.test(emo_foc_cop ~ ITT, data=d)
+```
+
+## ANOVA
+```{r}
+data.avg$id_nr = as.factor(data.avg$id_nr)
+data.avg$time = as.factor(data.avg$time)
+d=data.avg
+
+fit = aov(dysfunc_cop ~ (time*ITT)+Error(id_nr/time) + ITT , data=d)
+summary(fit)
+
+fit = aov(prob_foc_cop ~ (time*ITT)+Error(id_nr/time) + ITT , data=d)
+summary(fit)
+
+
+fit = aov(emo_foc_cop ~ (time*ITT)+Error(id_nr/time) + ITT , data=d)
+summary(fit)
+```
+
+## MANOVA
+###Dysfunctional coping
+```{r}
+fit=manova(cbind(behav_diseng,
+                 denial,self_dis,
+                 self_blame,
+                 subst_use,
+                 venting) ~ (time*ITT)+Error(id_nr/time) + ITT, data=d)
+summary(fit)
+```
+
+### Problem-focused coping
+```{r}
+fit=manova(cbind(act_cop,
+                 inst_supo,
+                 planning) ~ (time*ITT)+Error(id_nr/time) + ITT, data=d)
+summary(fit)
+```
+
+
+```{r}
+# sig. group effects or group*time interactions
+fit = aov(self_dis ~ (time*ITT)+Error(id_nr/time) + ITT , data=d)
+summary(fit)
+
+fit = aov(self_blame ~ (time*ITT)+Error(id_nr/time) + ITT , data=d)
+summary(fit)
+```
+
+## Spearman Correlation
+```{r}
+i = data.avg$time ==24 & data.avg$ITT == 'CG & CG Drop out'
+d = subset(data.avg, i)
+d$SV_24Mo = data$wSV_24Mo_sum[data$ITT == 'CG & CG Drop out']
+
+cor.test(d$self_blame, d$SV_24Mo, method="spearman")
+```
+
+
 ## ASSIP Group
 ```{r}
 i = data.avg$time ==24 & data.avg$ITT == 'ASSIP & ASSIP Drop out'
@@ -67,7 +137,7 @@ fit2 = lm(BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + behav_di
 x = cbind(d$self_dis, d$act_cop, d$denial, d$subst_use, d$emo_supo, d$inst_supo, d$behav_diseng,
           d$venting, d$pos_refram, d$planning, d$humor, d$accept, d$relig, d$self_blame,
           d$bdisum, d$previoussuicide_live_all)
-print(round(cor(x)*100), digits = 2)
+#print(round(cor(x)*100), digits = 2)
 
 vif(fit1) > 4
 vif(fit2) > 4
@@ -114,7 +184,7 @@ fit2 = lm(BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + behav_di
 x = cbind(d$self_dis, d$act_cop, d$denial, d$subst_use, d$emo_supo, d$inst_supo, d$behav_diseng,
           d$venting, d$pos_refram, d$planning, d$humor, d$accept, d$relig, d$self_blame,
           d$bdisum, d$previoussuicide_live_all)
-print(round(cor(x)*100), digits = 2)
+#print(round(cor(x)*100), digits = 2)
 
 
 vif(fit1) > 4
