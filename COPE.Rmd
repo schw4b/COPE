@@ -1,7 +1,7 @@
 ---
 title: "COPE"
 author: "Simon Schwab"
-date: "15 Sep 2017"
+date: "18 Sep 2017"
 output:
   html_document: default
   html_notebook: default
@@ -234,30 +234,34 @@ p3 = ggplot(d, aes(x=ITT, y=emo_foc_cop, color=ITT)) +  geom_boxplot(width=0.8) 
   ggtitle("Emotion-focused") + scale_color_manual(labels = c("ASSIP", "control\ngroup"), values = tmp$palette(2)) + ylim(c(1,4))
 
 plot_grid(p1, p2, p3, ncol=3, nrow=1, labels=c("A", "B", "C"), rel_widths = c(0.62, 0.62, 1))
+ggsave(path = "figures", "Fig2.png")
 ```
 
 ## Figure 3
 ```{r, fig.height=2, fig.width=6}
 
-# 
 tmp=scale_colour_hue()
+mylim=c(2,3.5)
 
 p1 = ggplot(data.avg, aes(x=as.factor(time), y=self_dis, group=ITT, color=ITT)) +
   stat_summary(geom = "line", fun.y=mean) +
   stat_summary(geom = "point", fun.y=mean, size=3) +
-  stat_summary(geom="errorbar", fun.data=mean_cl_boot, width = 0.2,
+  stat_summary(geom="errorbar", fun.data=mean_cl_boot, width = 0.3,
                fun.args=list(conf.int=0.95)) +
   theme(legend.position="none") + ggtitle("Self-distraction") + xlab("follow-up") + 
-  ylab("Score") + theme(plot.title = element_text(size = 12, face = "plain"))
+  ylab("Score") + theme(plot.title = element_text(size = 12, face = "plain")) +
+  coord_cartesian(ylim=mylim)
 
 p2 = ggplot(data.avg, aes(x=as.factor(time), y=self_blame, group=ITT, color=ITT)) +
   stat_summary(geom = "line", fun.y=mean) +
   stat_summary(geom = "point", fun.y=mean, size=3) +
-  stat_summary(geom = "errorbar", fun.data=mean_cl_boot, width = 0.2,
+  stat_summary(geom = "errorbar", fun.data=mean_cl_boot, width = 0.3,
                fun.args=list(conf.int=0.95)) +
   scale_color_manual(labels = c("ASSIP", "control\ngroup"), values = tmp$palette(2)) +
   ggtitle("Self-blame") + xlab("follow-up") + ylab("") +
-  theme(plot.title = element_text(size = 12, face = "plain"))
+  theme(plot.title = element_text(size = 12, face = "plain")) +
+  coord_cartesian(ylim=mylim)
   
 plot_grid(p1, p2, ncol=2, nrow=1, labels=c("A", "B"), rel_widths = c(0.7, 1))
+ggsave(path = "figures", "Fig3.png")
 ```
