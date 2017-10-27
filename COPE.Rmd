@@ -210,7 +210,7 @@ Relative importance
 varImp(fit, scale = FALSE)
 ```
 
-## Figure 2
+## Figure 1
 ```{r, fig.height=2, fig.width=6, message=FALSE, warning=FALSE}
 d = subset(data.avg, t_24)
 
@@ -232,10 +232,10 @@ p3 = ggplot(d, aes(x=ITT, y=emo_foc_cop, color=ITT)) +  geom_boxplot(width=0.8) 
   ggtitle("Emotion-focused") + scale_color_manual(labels = c("ASSIP", "control\ngroup"), values = tmp$palette(2)) + ylim(c(1,4))
 
 plot_grid(p1, p2, p3, ncol=3, nrow=1, labels=c("A", "B", "C"), rel_widths = c(0.62, 0.62, 1))
-ggsave(path = "figures", "Fig2.png")
+ggsave(path = "figures", "Fig1.png")
 ```
 
-## Figure 3
+## Figure 2
 ```{r, fig.height=2, fig.width=6}
 
 tmp=scale_colour_hue()
@@ -261,5 +261,5 @@ p2 = ggplot(data.avg, aes(x=as.factor(time), y=self_blame, group=ITT, color=ITT)
   coord_cartesian(ylim=mylim)
   
 plot_grid(p1, p2, ncol=2, nrow=1, labels=c("A", "B"), rel_widths = c(0.7, 1))
-ggsave(path = "figures", "Fig3.png")
+ggsave(path = "figures", "Fig2.png")
 ```
