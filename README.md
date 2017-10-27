@@ -1,2 +1,2 @@
 # COPE
-- [R Notebook](https://rawgit.com/schw4b/COPE/master/COPE.html)
+- [R Notebook](https://rawgit.com/schw4b/COPE/master/COPE.nb.html)

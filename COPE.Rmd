@@ -2,9 +2,7 @@
 title: "COPE"
 author: "Simon Schwab"
 date: "18 Sep 2017"
-output:
-  html_document: default
-  html_notebook: default
+output: html_notebook
 ---
 
 ## Libraries and loading data
