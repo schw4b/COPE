@@ -1,7 +1,7 @@
 ---
 title: "COPE"
 author: "Simon Schwab"
-date: "18 Sep 2017"
+date: "26 Feb 2018"
 output: html_notebook
 ---
 
@@ -13,6 +13,7 @@ output: html_notebook
 # install.packages("Hmisc")
 # install.packages("car")
 # install.packages("caret")
+# install.packages("nlme")
 
 library(MASS)
 library(ggplot2)
@@ -20,6 +21,7 @@ library(cowplot)
 library(Hmisc)
 library(car)
 library(caret)
+library(nlme)
 
 load("COPE_impM20.Rdata")
 ```
@@ -52,6 +54,7 @@ i = data.avg$time == 24
 d = subset(data.avg, i)
 
 wilcox.test(dysfunc_cop ~ ITT, data=d)
+t.test(dysfunc_cop ~ ITT, data=d)
 1-median(d$dysfunc_cop[is.assip])/median(d$dysfunc_cop[is.cg])
 
 wilcox.test(prob_foc_cop ~ ITT, data=d)
@@ -263,3 +266,69 @@ p2 = ggplot(data.avg, aes(x=as.factor(time), y=self_blame, group=ITT, color=ITT)
 plot_grid(p1, p2, ncol=2, nrow=1, labels=c("A", "B"), rel_widths = c(0.7, 1))
 ggsave(path = "figures", "Fig2.png")
 ```
+
+
+## Prepare data for cross table
+```{r}
+t1=121:240
+t2=241:360
+t3=361:480
+t4=481:600
+
+t=0.69
+rep = (data.avg$repeater[t1] > t) | (data.avg$repeater[t2] > t) |
+      (data.avg$repeater[t3] > t) | (data.avg$repeater[t4] > t)
+
+my.d24 = subset(data.avg, data.avg$time==24)
+my.d24$rep = rep
+```
+
+### Cross-check with Plos Med paper Table 2 and comparision to imputed data
+```{r}
+x=array(c(sum(data.avg$repeater[t1][is.assip]==1), sum(data.avg$repeater[t2][is.assip]==1),
+          sum(data.avg$repeater[t3][is.assip]==1), sum(data.avg$repeater[t4][is.assip]==1),
+          sum(data.avg$repeater[t1][is.cg]==1), sum(data.avg$repeater[t2][is.cg]==1),
+          sum(data.avg$repeater[t3][is.cg]==1), sum(data.avg$repeater[t4][is.cg]==1),
+          sum(data.avg$repeater[t1][is.assip]>t), sum(data.avg$repeater[t2][is.assip]>t),
+          sum(data.avg$repeater[t3][is.assip]>t), sum(data.avg$repeater[t4][is.assip]>t),
+          sum(data.avg$repeater[t1][is.cg]>t), sum(data.avg$repeater[t2][is.cg]>t),
+          sum(data.avg$repeater[t3][is.cg]>t), sum(data.avg$repeater[t4][is.cg]>t)),
+          dim=c(4,4))
+colnames(x)=c("ASSIP", "CG", "ASSIP (imp)", "CG (imp)")
+rownames(x)=c("6m", "12m", "18m", "24m")
+print(x)
+```
+Imputationd created additonal repeater in the control group, this group had 22% missing data.
+
+### Repeater 1-24m
+```{r}
+c(sum(my.d24$rep[is.assip]), sum(my.d24$rep[is.cg]))
+```
+
+### Control Group
+```{r}
+sb=round(my.d24$self_blame)
+x=array(c(sum(is.cg & my.d24$rep & (sb >= 1 & sb <= 2) ), sum(is.cg & !my.d24$rep & (sb >= 1 & sb <= 2) ),
+          sum(is.cg & my.d24$rep & sb > 2), sum(is.cg & !my.d24$rep & sb > 2 )),
+        dim=c(2,2))
+colnames(x)=c("1-2", "2-4")
+rownames(x)=c("repeater", "no repeater")
+print(x)
+
+# Percentage
+print(x/rowSums(x))
+```
+
+### ASSIP
+```{r}
+x=array(c(sum(is.assip & my.d24$rep & (sb >= 1 & sb <= 2) ), sum(is.assip & !my.d24$rep & (sb >= 1 & sb <= 2) ),
+          sum(is.assip & my.d24$rep & sb > 2), sum(is.assip & !my.d24$rep & sb > 2 )),
+        dim=c(2,2))
+colnames(x)=c("1-2", "2-4")
+rownames(x)=c("repeater", "no repeater")
+print(x)
+
+# Percentage
+print(x/rowSums(x))
+```
+
