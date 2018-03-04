@@ -1,7 +1,7 @@
 ---
 title: "COPE"
 author: "Simon Schwab"
-date: "26 Feb 2018"
+date: "04 Mar 2018"
 output: html_notebook
 ---
 
@@ -268,7 +268,8 @@ ggsave(path = "figures", "Fig2.png")
 ```
 
 
-## Prepare data for cross table
+## Cross table for self blame
+### Prepare data for cross table
 ```{r}
 t1=121:240
 t2=241:360
