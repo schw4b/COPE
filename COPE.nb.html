@@ -180,7 +180,7 @@ $(document).ready(function () {
 <h2>Libraries and loading data</h2>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBpbnN0YWxsLnBhY2thZ2VzKFwiTUFTU1wiKVxuIyBpbnN0YWxsLnBhY2thZ2VzKFwiZ2dwbG90MlwiKVxuIyBpbnN0YWxsLnBhY2thZ2VzKFwiY293cGxvdFwiKVxuIyBpbnN0YWxsLnBhY2thZ2VzKFwiSG1pc2NcIilcbiMgaW5zdGFsbC5wYWNrYWdlcyhcImNhclwiKVxuIyBpbnN0YWxsLnBhY2thZ2VzKFwiY2FyZXRcIilcbiMgaW5zdGFsbC5wYWNrYWdlcyhcIm5sbWVcIilcbmxpYnJhcnkoTUFTUylcbmxpYnJhcnkoZ2dwbG90MilcbmxpYnJhcnkoY293cGxvdClcbmxpYnJhcnkoSG1pc2MpXG5saWJyYXJ5KGNhcilcbmxpYnJhcnkoY2FyZXQpXG5saWJyYXJ5KG5sbWUpXG5sb2FkKFwiQ09QRV9pbXBNMjAuUmRhdGFcIilcbmBgYCJ9 -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBpbnN0YWxsLnBhY2thZ2VzKFwiTUFTU1wiKVxuIyBpbnN0YWxsLnBhY2thZ2VzKFwiZ2dwbG90MlwiKVxuIyBpbnN0YWxsLnBhY2thZ2VzKFwiY293cGxvdFwiKVxuIyBpbnN0YWxsLnBhY2thZ2VzKFwiSG1pc2NcIilcbiMgaW5zdGFsbC5wYWNrYWdlcyhcImNhclwiKVxuIyBpbnN0YWxsLnBhY2thZ2VzKFwiY2FyZXRcIilcbiMgaW5zdGFsbC5wYWNrYWdlcyhcIm5sbWVcIilcbmxpYnJhcnkoTUFTUylcbmxpYnJhcnkoZ2dwbG90MilcbmxpYnJhcnkoY293cGxvdClcbmBgYCJ9 -->
 <pre class="r"><code># install.packages(&quot;MASS&quot;)
 # install.packages(&quot;ggplot2&quot;)
 # install.packages(&quot;cowplot&quot;)
@@ -190,11 +190,44 @@ $(document).ready(function () {
 # install.packages(&quot;nlme&quot;)
 library(MASS)
 library(ggplot2)
-library(cowplot)
-library(Hmisc)
-library(car)
-library(caret)
-library(nlme)
+library(cowplot)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5BdHRhY2hpbmcgcGFja2FnZTog4oCYY293cGxvdOKAmVxuXG5UaGUgZm9sbG93aW5nIG9iamVjdCBpcyBtYXNrZWQgZnJvbSDigJhwYWNrYWdlOmdncGxvdDLigJk6XG5cbiAgICBnZ3NhdmVcbiJ9 -->
+<pre><code>
+Attaching package: ‘cowplot’
+
+The following object is masked from ‘package:ggplot2’:
+
+    ggsave</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShIbWlzYylcbmBgYCJ9 -->
+<pre class="r"><code>library(Hmisc)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiTG9hZGluZyByZXF1aXJlZCBwYWNrYWdlOiBsYXR0aWNlXG5Mb2FkaW5nIHJlcXVpcmVkIHBhY2thZ2U6IHN1cnZpdmFsXG5Mb2FkaW5nIHJlcXVpcmVkIHBhY2thZ2U6IEZvcm11bGFcblxuQXR0YWNoaW5nIHBhY2thZ2U6IOKAmEhtaXNj4oCZXG5cblRoZSBmb2xsb3dpbmcgb2JqZWN0cyBhcmUgbWFza2VkIGZyb20g4oCYcGFja2FnZTpiYXNl4oCZOlxuXG4gICAgZm9ybWF0LnB2YWwsIHJvdW5kLlBPU0lYdCwgdHJ1bmMuUE9TSVh0LCB1bml0c1xuIn0= -->
+<pre><code>Loading required package: lattice
+Loading required package: survival
+Loading required package: Formula
+
+Attaching package: ‘Hmisc’
+
+The following objects are masked from ‘package:base’:
+
+    format.pval, round.POSIXt, trunc.POSIXt, units</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShjYXIpXG5saWJyYXJ5KGNhcmV0KVxuYGBgIn0= -->
+<pre class="r"><code>library(car)
+library(caret)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5BdHRhY2hpbmcgcGFja2FnZTog4oCYY2FyZXTigJlcblxuVGhlIGZvbGxvd2luZyBvYmplY3QgaXMgbWFza2VkIGZyb20g4oCYcGFja2FnZTpzdXJ2aXZhbOKAmTpcblxuICAgIGNsdXN0ZXJcbiJ9 -->
+<pre><code>
+Attaching package: ‘caret’
+
+The following object is masked from ‘package:survival’:
+
+    cluster</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShubG1lKVxubG9hZChcIkNPUEVfaW1wTTIwLlJkYXRhXCIpXG5gYGAifQ== -->
+<pre class="r"><code>library(nlme)
 load(&quot;COPE_impM20.Rdata&quot;)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
@@ -562,26 +595,28 @@ fit2 = lm(BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + behav_di
 #print(round(cor(x)*100), digits = 2)
 vif(fit1) &gt; 4</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiICAgICAgICAgICAgICAgIHNlbGZfZGlzICAgICAgICAgICAgICAgICAgYWN0X2NvcCAgICAgICAgICAgICAgICAgICBkZW5pYWwgICAgICAgICAgICAgICAgc3Vic3RfdXNlICAgICAgICAgICAgICAgICBlbW9fc3VwbyBcbiAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgIFRSVUUgXG4gICAgICAgICAgICAgICBpbnN0X3N1cG8gICAgICAgICAgICAgYmVoYXZfZGlzZW5nICAgICAgICAgICAgICAgICAgdmVudGluZyAgICAgICAgICAgICAgIHBvc19yZWZyYW0gICAgICAgICAgICAgICAgIHBsYW5uaW5nIFxuICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSBcbiAgICAgICAgICAgICAgICAgICBodW1vciAgICAgICAgICAgICAgICAgICBhY2NlcHQgICAgICAgICAgICAgICAgICAgIHJlbGlnICAgICAgICAgICAgICAgc2VsZl9ibGFtZSAgICAgICAgICAgICAgICAgICBiZGlzdW0gXG4gICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFIFxucHJldmlvdXNzdWljaWRlX2xpdmVfYWxsIFxuICAgICAgICAgICAgICAgICAgIEZBTFNFIFxuIn0= -->
-<pre><code>                self_dis                  act_cop                   denial                subst_use                 emo_supo 
-                   FALSE                    FALSE                    FALSE                    FALSE                     TRUE 
-               inst_supo             behav_diseng                  venting               pos_refram                 planning 
-                   FALSE                    FALSE                    FALSE                    FALSE                    FALSE 
-                   humor                   accept                    relig               self_blame                   bdisum 
-                   FALSE                    FALSE                    FALSE                    FALSE                    FALSE 
-previoussuicide_live_all 
-                   FALSE </code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiICAgICAgICAgICAgICAgIHNlbGZfZGlzICAgICAgICAgICAgICAgICAgYWN0X2NvcCAgICAgICAgICAgICAgICAgICBkZW5pYWwgICAgICAgICAgICAgICAgc3Vic3RfdXNlIFxuICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFIFxuICAgICAgICAgICAgICAgIGVtb19zdXBvICAgICAgICAgICAgICAgIGluc3Rfc3VwbyAgICAgICAgICAgICBiZWhhdl9kaXNlbmcgICAgICAgICAgICAgICAgICB2ZW50aW5nIFxuICAgICAgICAgICAgICAgICAgICBUUlVFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFIFxuICAgICAgICAgICAgICBwb3NfcmVmcmFtICAgICAgICAgICAgICAgICBwbGFubmluZyAgICAgICAgICAgICAgICAgICAgaHVtb3IgICAgICAgICAgICAgICAgICAgYWNjZXB0IFxuICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFIFxuICAgICAgICAgICAgICAgICAgIHJlbGlnICAgICAgICAgICAgICAgc2VsZl9ibGFtZSAgICAgICAgICAgICAgICAgICBiZGlzdW0gcHJldmlvdXNzdWljaWRlX2xpdmVfYWxsIFxuICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFIFxuIn0= -->
+<pre><code>                self_dis                  act_cop                   denial                subst_use 
+                   FALSE                    FALSE                    FALSE                    FALSE 
+                emo_supo                inst_supo             behav_diseng                  venting 
+                    TRUE                    FALSE                    FALSE                    FALSE 
+              pos_refram                 planning                    humor                   accept 
+                   FALSE                    FALSE                    FALSE                    FALSE 
+                   relig               self_blame                   bdisum previoussuicide_live_all 
+                   FALSE                    FALSE                    FALSE                    FALSE </code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudmlmKGZpdDIpID4gNFxuYGBgIn0= -->
 <pre class="r"><code>vif(fit2) &gt; 4</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiICAgICAgICAgICAgICAgIHNlbGZfZGlzICAgICAgICAgICAgICAgICAgYWN0X2NvcCAgICAgICAgICAgICAgICAgICBkZW5pYWwgICAgICAgICAgICAgICAgc3Vic3RfdXNlICAgICAgICAgICAgICAgICBlbW9fc3VwbyBcbiAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgXG4gICAgICAgICAgICBiZWhhdl9kaXNlbmcgICAgICAgICAgICAgICAgICB2ZW50aW5nICAgICAgICAgICAgICAgcG9zX3JlZnJhbSAgICAgICAgICAgICAgICAgcGxhbm5pbmcgICAgICAgICAgICAgICAgICAgIGh1bW9yIFxuICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSBcbiAgICAgICAgICAgICAgICAgIGFjY2VwdCAgICAgICAgICAgICAgICAgICAgcmVsaWcgICAgICAgICAgICAgICAgICAgYmRpc3VtIHByZXZpb3Vzc3VpY2lkZV9saXZlX2FsbCBcbiAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSBcbiJ9 -->
-<pre><code>                self_dis                  act_cop                   denial                subst_use                 emo_supo 
-                   FALSE                    FALSE                    FALSE                    FALSE                    FALSE 
-            behav_diseng                  venting               pos_refram                 planning                    humor 
-                   FALSE                    FALSE                    FALSE                    FALSE                    FALSE 
-                  accept                    relig                   bdisum previoussuicide_live_all 
-                   FALSE                    FALSE                    FALSE                    FALSE </code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiICAgICAgICAgICAgICAgIHNlbGZfZGlzICAgICAgICAgICAgICAgICAgYWN0X2NvcCAgICAgICAgICAgICAgICAgICBkZW5pYWwgICAgICAgICAgICAgICAgc3Vic3RfdXNlIFxuICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFIFxuICAgICAgICAgICAgICAgIGVtb19zdXBvICAgICAgICAgICAgIGJlaGF2X2Rpc2VuZyAgICAgICAgICAgICAgICAgIHZlbnRpbmcgICAgICAgICAgICAgICBwb3NfcmVmcmFtIFxuICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFIFxuICAgICAgICAgICAgICAgIHBsYW5uaW5nICAgICAgICAgICAgICAgICAgICBodW1vciAgICAgICAgICAgICAgICAgICBhY2NlcHQgICAgICAgICAgICAgICAgICAgIHJlbGlnIFxuICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFIFxuICAgICAgICAgICAgICAgICAgYmRpc3VtIHByZXZpb3Vzc3VpY2lkZV9saXZlX2FsbCBcbiAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgXG4ifQ== -->
+<pre><code>                self_dis                  act_cop                   denial                subst_use 
+                   FALSE                    FALSE                    FALSE                    FALSE 
+                emo_supo             behav_diseng                  venting               pos_refram 
+                   FALSE                    FALSE                    FALSE                    FALSE 
+                planning                    humor                   accept                    relig 
+                   FALSE                    FALSE                    FALSE                    FALSE 
+                  bdisum previoussuicide_live_all 
+                   FALSE                    FALSE </code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -731,26 +766,28 @@ fit2 = lm(BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + behav_di
 #print(round(cor(x)*100), digits = 2)
 vif(fit1) &gt; 4</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiICAgICAgICAgICAgICAgIHNlbGZfZGlzICAgICAgICAgICAgICAgICAgYWN0X2NvcCAgICAgICAgICAgICAgICAgICBkZW5pYWwgICAgICAgICAgICAgICAgc3Vic3RfdXNlICAgICAgICAgICAgICAgICBlbW9fc3VwbyBcbiAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgIFRSVUUgXG4gICAgICAgICAgICAgICBpbnN0X3N1cG8gICAgICAgICAgICAgYmVoYXZfZGlzZW5nICAgICAgICAgICAgICAgICAgdmVudGluZyAgICAgICAgICAgICAgIHBvc19yZWZyYW0gICAgICAgICAgICAgICAgIHBsYW5uaW5nIFxuICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSBcbiAgICAgICAgICAgICAgICAgICBodW1vciAgICAgICAgICAgICAgICAgICBhY2NlcHQgICAgICAgICAgICAgICAgICAgIHJlbGlnICAgICAgICAgICAgICAgc2VsZl9ibGFtZSAgICAgICAgICAgICAgICAgICBiZGlzdW0gXG4gICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgICBUUlVFIFxucHJldmlvdXNzdWljaWRlX2xpdmVfYWxsIFxuICAgICAgICAgICAgICAgICAgIEZBTFNFIFxuIn0= -->
-<pre><code>                self_dis                  act_cop                   denial                subst_use                 emo_supo 
-                   FALSE                    FALSE                    FALSE                    FALSE                     TRUE 
-               inst_supo             behav_diseng                  venting               pos_refram                 planning 
-                   FALSE                    FALSE                    FALSE                    FALSE                    FALSE 
-                   humor                   accept                    relig               self_blame                   bdisum 
-                   FALSE                    FALSE                    FALSE                    FALSE                     TRUE 
-previoussuicide_live_all 
-                   FALSE </code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiICAgICAgICAgICAgICAgIHNlbGZfZGlzICAgICAgICAgICAgICAgICAgYWN0X2NvcCAgICAgICAgICAgICAgICAgICBkZW5pYWwgICAgICAgICAgICAgICAgc3Vic3RfdXNlIFxuICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFIFxuICAgICAgICAgICAgICAgIGVtb19zdXBvICAgICAgICAgICAgICAgIGluc3Rfc3VwbyAgICAgICAgICAgICBiZWhhdl9kaXNlbmcgICAgICAgICAgICAgICAgICB2ZW50aW5nIFxuICAgICAgICAgICAgICAgICAgICBUUlVFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFIFxuICAgICAgICAgICAgICBwb3NfcmVmcmFtICAgICAgICAgICAgICAgICBwbGFubmluZyAgICAgICAgICAgICAgICAgICAgaHVtb3IgICAgICAgICAgICAgICAgICAgYWNjZXB0IFxuICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFIFxuICAgICAgICAgICAgICAgICAgIHJlbGlnICAgICAgICAgICAgICAgc2VsZl9ibGFtZSAgICAgICAgICAgICAgICAgICBiZGlzdW0gcHJldmlvdXNzdWljaWRlX2xpdmVfYWxsIFxuICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgIFRSVUUgICAgICAgICAgICAgICAgICAgIEZBTFNFIFxuIn0= -->
+<pre><code>                self_dis                  act_cop                   denial                subst_use 
+                   FALSE                    FALSE                    FALSE                    FALSE 
+                emo_supo                inst_supo             behav_diseng                  venting 
+                    TRUE                    FALSE                    FALSE                    FALSE 
+              pos_refram                 planning                    humor                   accept 
+                   FALSE                    FALSE                    FALSE                    FALSE 
+                   relig               self_blame                   bdisum previoussuicide_live_all 
+                   FALSE                    FALSE                     TRUE                    FALSE </code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudmlmKGZpdDIpID4gNFxuYGBgIn0= -->
 <pre class="r"><code>vif(fit2) &gt; 4</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiICAgICAgICAgICAgICAgIHNlbGZfZGlzICAgICAgICAgICAgICAgICAgYWN0X2NvcCAgICAgICAgICAgICAgICAgICBkZW5pYWwgICAgICAgICAgICAgICAgc3Vic3RfdXNlICAgICAgICAgICAgICAgICBlbW9fc3VwbyBcbiAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgXG4gICAgICAgICAgICBiZWhhdl9kaXNlbmcgICAgICAgICAgICAgICAgICB2ZW50aW5nICAgICAgICAgICAgICAgcG9zX3JlZnJhbSAgICAgICAgICAgICAgICAgcGxhbm5pbmcgICAgICAgICAgICAgICAgICAgIGh1bW9yIFxuICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSBcbiAgICAgICAgICAgICAgICAgIGFjY2VwdCAgICAgICAgICAgICAgICAgICAgcmVsaWcgICAgICAgICAgICAgICAgICAgYmRpc3VtIHByZXZpb3Vzc3VpY2lkZV9saXZlX2FsbCBcbiAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSBcbiJ9 -->
-<pre><code>                self_dis                  act_cop                   denial                subst_use                 emo_supo 
-                   FALSE                    FALSE                    FALSE                    FALSE                    FALSE 
-            behav_diseng                  venting               pos_refram                 planning                    humor 
-                   FALSE                    FALSE                    FALSE                    FALSE                    FALSE 
-                  accept                    relig                   bdisum previoussuicide_live_all 
-                   FALSE                    FALSE                    FALSE                    FALSE </code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiICAgICAgICAgICAgICAgIHNlbGZfZGlzICAgICAgICAgICAgICAgICAgYWN0X2NvcCAgICAgICAgICAgICAgICAgICBkZW5pYWwgICAgICAgICAgICAgICAgc3Vic3RfdXNlIFxuICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFIFxuICAgICAgICAgICAgICAgIGVtb19zdXBvICAgICAgICAgICAgIGJlaGF2X2Rpc2VuZyAgICAgICAgICAgICAgICAgIHZlbnRpbmcgICAgICAgICAgICAgICBwb3NfcmVmcmFtIFxuICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFIFxuICAgICAgICAgICAgICAgIHBsYW5uaW5nICAgICAgICAgICAgICAgICAgICBodW1vciAgICAgICAgICAgICAgICAgICBhY2NlcHQgICAgICAgICAgICAgICAgICAgIHJlbGlnIFxuICAgICAgICAgICAgICAgICAgIEZBTFNFICAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgICAgICAgICAgICAgICAgICAgIEZBTFNFIFxuICAgICAgICAgICAgICAgICAgYmRpc3VtIHByZXZpb3Vzc3VpY2lkZV9saXZlX2FsbCBcbiAgICAgICAgICAgICAgICAgICBGQUxTRSAgICAgICAgICAgICAgICAgICAgRkFMU0UgXG4ifQ== -->
+<pre><code>                self_dis                  act_cop                   denial                subst_use 
+                   FALSE                    FALSE                    FALSE                    FALSE 
+                emo_supo             behav_diseng                  venting               pos_refram 
+                   FALSE                    FALSE                    FALSE                    FALSE 
+                planning                    humor                   accept                    relig 
+                   FALSE                    FALSE                    FALSE                    FALSE 
+                  bdisum previoussuicide_live_all 
+                   FALSE                    FALSE </code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
