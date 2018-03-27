@@ -55,16 +55,24 @@ t0[1:120] = TRUE
 d.base=subset(data.avg, subset = t0)
 
 # mean and SD
-c(mean(d.base$BSSsum[is.assip]), sd(d.base$BSSsum[is.assip]))
-c(mean(d.base$BSSsum[is.cg]), sd(d.base$BSSsum[is.cg]))
+x=array(NA, dim=c(3,2))
+rownames(x)=c("ASSIP", "CG", "Total")
+colnames(x)=c("mean", "SD")
+x[1,]=c(mean(d.base$BSSsum[is.assip]), sd(d.base$BSSsum[is.assip]))
+x[2,]=c(mean(d.base$BSSsum[is.cg]), sd(d.base$BSSsum[is.cg]))
+x[3,]=c(mean(d.base$BSSsum), sd(d.base$BSSsum))
+print(x)
+
 wilcox.test(d.base$BSSsum ~ d.base$ITT, alternative="two.sided", paired=FALSE)
 ```
 
 ## Baseline COPE
 ```{r}
 # mean and SD
-c(mean(d.base$COPE_mean[is.assip]), sd(d.base$COPE_mean[is.assip]))
-c(mean(d.base$COPE_mean[is.cg]), sd(d.base$COPE_mean[is.cg]))
+x[1,]=c(mean(d.base$COPE_mean[is.assip]), sd(d.base$COPE_mean[is.assip]))
+x[2,]=c(mean(d.base$COPE_mean[is.cg]), sd(d.base$COPE_mean[is.cg]))
+x[3,]=c(mean(d.base$COPE_mean), sd(d.base$COPE_mean))
+print(x)
 wilcox.test(d.base$COPE_mean ~ d.base$ITT)
 ```
 
