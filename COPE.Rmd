@@ -1,7 +1,7 @@
 ---
 title: "COPE"
 author: "Simon Schwab"
-date: "04 Mar 2018"
+date: "27 Mar 2018"
 output: html_notebook
 ---
 
@@ -46,6 +46,26 @@ summary(data.avg$sex[t_24]) # all
 c(mean(data.avg$age[t_24 & is.assip]), sd(data.avg$age[t_24 & is.assip]))
 c(mean(data.avg$age[t_24 & is.cg]), sd(data.avg$age[t_24 & is.cg]))
 c(mean(data.avg$age[t_24 ]), sd(data.avg$age[t_24]))
+```
+
+## Baseline BSS sum
+```{r}
+t0=rep(FALSE, 600)
+t0[1:120] = TRUE
+d.base=subset(data.avg, subset = t0)
+
+# mean and SD
+c(mean(d.base$BSSsum[is.assip]), sd(d.base$BSSsum[is.assip]))
+c(mean(d.base$BSSsum[is.cg]), sd(d.base$BSSsum[is.cg]))
+wilcox.test(d.base$BSSsum ~ d.base$ITT, alternative="two.sided", paired=FALSE)
+```
+
+## Baseline COPE
+```{r}
+# mean and SD
+c(mean(d.base$COPE_mean[is.assip]), sd(d.base$COPE_mean[is.assip]))
+c(mean(d.base$COPE_mean[is.cg]), sd(d.base$COPE_mean[is.cg]))
+wilcox.test(d.base$COPE_mean ~ d.base$ITT)
 ```
 
 ## Main analyses at 24-month
