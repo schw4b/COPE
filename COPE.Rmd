@@ -1,7 +1,7 @@
 ---
 title: "COPE"
 author: "Simon Schwab"
-date: "21 Dec 2018"
+date: "22 Dec 2018"
 output: html_notebook
 ---
 
@@ -34,15 +34,10 @@ library(nortest)
 # load
 load("COPE_impM20.Rdata")
 
-# 
-t_24  = rep(FALSE, N*5)
-t_24[481:600] = TRUE;
-data.24 = subset(data.avg, subset = t_24)
+data.24 = subset(data.avg, subset = time==24)
 data.24$group = revalue(data.24$ITT, c("ASSIP & ASSIP Drop out"="ASSIP", "CG & CG Drop out"="Controls"))
 
-t_0  = rep(FALSE, N*5)
-t_0[1:120] = TRUE;
-data.0 = subset(data.avg, subset = t_0)
+data.0 = subset(data.avg, subset = time==0)
 data.0$group = revalue(data.0$ITT, c("ASSIP & ASSIP Drop out"="ASSIP", "CG & CG Drop out"="Controls"))
 
 # add F diagnoses for Table 1
@@ -192,45 +187,97 @@ kable(t(table))
 
 ## Main analyses at 24-month
 ```{r}
-i = data.avg$time == 24
-d = subset(data.avg, i)
+tapply(data.24$dysfunc_cop, data.24$ITT, median)
+wilcox.test(dysfunc_cop ~ ITT, data=data.24)
+1-median(data.24$dysfunc_cop[is.assip])/median(data.24$dysfunc_cop[is.cg])
 
-wilcox.test(dysfunc_cop ~ ITT, data=d)
-t.test(dysfunc_cop ~ ITT, data=d)
-1-median(d$dysfunc_cop[is.assip])/median(d$dysfunc_cop[is.cg])
+tapply(data.24$prob_foc_cop, data.24$ITT, median)
+wilcox.test(prob_foc_cop ~ ITT, data=data.24)
+median(data.24$prob_foc_cop[is.assip])/median(data.24$prob_foc_cop[is.cg])
 
-wilcox.test(prob_foc_cop ~ ITT, data=d)
-median(d$prob_foc_cop[is.assip])/median(d$prob_foc_cop[is.cg])
-
-wilcox.test(emo_foc_cop ~ ITT, data=d)
+wilcox.test(emo_foc_cop ~ ITT, data=data.24)
 ```
 
-## ANOVA
+## Figure 1
+```{r, fig.height=2, fig.width=6, message=FALSE, warning=FALSE}
+p1 = ggplot(data.24, aes(x=ITT, y=dysfunc_cop, color=ITT)) +   geom_boxplot(width=0.8) +
+  geom_point(shape=1, color="gray70", size=1, position = position_jitter(width = 0.3, height = 0.01)) +
+  theme(legend.position="none", axis.text.x=element_blank(), plot.title = element_text(size = 11, face = "plain")) +
+  ylab("Score") + xlab("") + ggtitle("Dysfunctional") + ylim(c(1,4))
+
+p2 = ggplot(data.24, aes(x=ITT, y=prob_foc_cop, color=ITT)) +  geom_boxplot(width=0.8) +
+  geom_point(shape=1, color="gray70", size=1, position = position_jitter(width = 0.3, height = 0.01)) +
+  theme(legend.position="none", axis.text.x=element_blank(), plot.title = element_text(size = 11, face = "plain")) +
+  ylab("") + xlab("") + ggtitle("Problem-focused") + ylim(c(1,4))
+
+tmp=scale_colour_hue()
+
+p3 = ggplot(data.24, aes(x=ITT, y=emo_foc_cop, color=ITT)) +  geom_boxplot(width=0.8) +
+  geom_point(shape=1, color="gray70", size=1, position = position_jitter(width = 0.3, height = 0.01)) +
+  ylab("") + xlab("") + theme(axis.text.x=element_blank(), plot.title = element_text(size = 11, face = "plain")) +
+  ggtitle("Emotion-focused") + scale_color_manual(labels = c("ASSIP", "control\ngroup"), values = tmp$palette(2)) +
+  ylim(c(1,4))
+
+plot_grid(p1, p2, p3, ncol=3, nrow=1, labels=c("A", "B", "C"), rel_widths = c(0.55, 0.55, 1))
+ggsave(path = "figures", "Fig1.png")
+```
+
+## MANOVA
+### Dysfunctional coping
 ```{r}
 data.avg$id_nr = as.factor(data.avg$id_nr)
 data.avg$time = as.factor(data.avg$time)
 d=data.avg
 
-fit = aov(dysfunc_cop ~ (time*ITT)+Error(id_nr/time) + ITT , data=d)
-summary(fit)
-
-fit = aov(prob_foc_cop ~ (time*ITT)+Error(id_nr/time) + ITT , data=d)
-summary(fit)
-
-
-fit = aov(emo_foc_cop ~ (time*ITT)+Error(id_nr/time) + ITT , data=d)
+# Six subscales of dysfunctional coping
+fit=manova(cbind(self_dis, denial, subst_use,
+                 behav_diseng, venting, self_blame) ~ (time*ITT)+Error(id_nr/time) + ITT, data=d)
 summary(fit)
 ```
 
-## MANOVA
-###Dysfunctional coping
+### Single ANOVAS
 ```{r}
-fit=manova(cbind(behav_diseng,
-                 denial,self_dis,
-                 self_blame,
-                 subst_use,
-                 venting) ~ (time*ITT)+Error(id_nr/time) + ITT, data=d)
-summary(fit)
+tab = data.frame(F=rep(NA, 6), df1=rep(NA, 6), df2=rep(NA, 6), pval=rep(NA, 6))
+rownames(tab) = c("self_dis", "denial", "subst_use",
+                 "behav_diseng", "venting", "self_blame")
+
+fit = summary(aov(self_dis ~ (time*ITT)+Error(id_nr/time) + ITT , data=d))
+tab[1,] = c(fmt.2(fit$`Error: id_nr:time`[[1]]$`F value`[2]),
+            fit$`Error: id_nr:time`[[1]]$Df[2],
+            fit$`Error: id_nr:time`[[1]]$Df[3],
+            formatPval(fit$`Error: id_nr:time`[[1]]$`Pr(>F)`[2]))
+
+fit = summary(aov(denial ~ (time*ITT)+Error(id_nr/time) + ITT , data=d))
+tab[2,] = c(fmt.2(fit$`Error: id_nr:time`[[1]]$`F value`[2]),
+            fit$`Error: id_nr:time`[[1]]$Df[2],
+            fit$`Error: id_nr:time`[[1]]$Df[3],
+            formatPval(fit$`Error: id_nr:time`[[1]]$`Pr(>F)`[2]))
+
+fit = summary(aov(subst_use ~ (time*ITT)+Error(id_nr/time) + ITT , data=d))
+tab[3,] = c(fmt.2(fit$`Error: id_nr:time`[[1]]$`F value`[2]),
+            fit$`Error: id_nr:time`[[1]]$Df[2],
+            fit$`Error: id_nr:time`[[1]]$Df[3],
+            formatPval(fit$`Error: id_nr:time`[[1]]$`Pr(>F)`[2]))
+
+fit = summary(aov(behav_diseng ~ (time*ITT)+Error(id_nr/time) + ITT , data=d))
+tab[4,] = c(fmt.2(fit$`Error: id_nr:time`[[1]]$`F value`[2]),
+            fit$`Error: id_nr:time`[[1]]$Df[2],
+            fit$`Error: id_nr:time`[[1]]$Df[3],
+            formatPval(fit$`Error: id_nr:time`[[1]]$`Pr(>F)`[2]))
+
+fit = summary(aov(venting ~ (time*ITT)+Error(id_nr/time) + ITT , data=d))
+tab[5,] = c(fmt.2(fit$`Error: id_nr:time`[[1]]$`F value`[2]),
+            fit$`Error: id_nr:time`[[1]]$Df[2],
+            fit$`Error: id_nr:time`[[1]]$Df[3],
+            formatPval(fit$`Error: id_nr:time`[[1]]$`Pr(>F)`[2]))
+
+fit = summary(aov(self_blame ~ (time*ITT)+Error(id_nr/time) + ITT , data=d))
+tab[6,] = c(fmt.2(fit$`Error: id_nr:time`[[1]]$`F value`[2]),
+            fit$`Error: id_nr:time`[[1]]$Df[2],
+            fit$`Error: id_nr:time`[[1]]$Df[3],
+            formatPval(fit$`Error: id_nr:time`[[1]]$`Pr(>F)`[2]))
+
+kable(tab)
 ```
 
 ### Problem-focused coping
@@ -241,149 +288,103 @@ fit=manova(cbind(act_cop,
 summary(fit)
 ```
 
-
+## Regression
+### Multicollinearity ASSIP
 ```{r}
-# sig. group effects or group*time interactions
-fit = aov(self_dis ~ (time*ITT)+Error(id_nr/time) + ITT , data=d)
-summary(fit)
+d.assip = subset(data.24, subset = is.assip)
 
-fit = aov(self_blame ~ (time*ITT)+Error(id_nr/time) + ITT , data=d)
-summary(fit)
+fit1 = lm(BSSsum ~ self_dis + denial + subst_use + behav_diseng + venting + self_blame +
+            emo_supo + pos_refram + humor + accept + relig  +
+            act_cop + inst_supo + planning +
+            bdisum + previoussuicide_live_all, data = d.assip)
+
+s = names(fit1$coefficients)
+s = s[2:length(s)]
+s[vif(fit1) > 4]
+
+M = cbind(d$self_dis, d$denial, d$subst_use, d$behav_diseng, d$venting, d$self_blame,
+            d$emo_supo, d$pos_refram, d$humor, d$accept, d$relig,
+            d$act_cop, d$inst_supo, d$planning,
+            d$bdisum, d$previoussuicide_live_all)
+M = round(cor(M)*100) * !diag(length(s))
+rownames(M) = s
+colnames(M) = s
+which.max(M[7,])
 ```
 
-## Spearman Correlation
+### Multicollinearity CG
 ```{r}
-i = data.avg$time ==24 & data.avg$ITT == 'CG & CG Drop out'
-d = subset(data.avg, i)
-d$SV_24Mo = data$wSV_24Mo_sum[data$ITT == 'CG & CG Drop out']
+d.cg = subset(data.24, subset = is.cg)
 
-cor.test(d$self_blame, d$SV_24Mo, method="spearman")
+fit1 = lm(BSSsum ~ self_dis + denial + subst_use + behav_diseng + venting + self_blame +
+            emo_supo + pos_refram + humor + accept + relig  +
+            act_cop + inst_supo + planning +
+            bdisum + previoussuicide_live_all, data = d.cg)
+
+s = names(fit1$coefficients)
+s = s[2:length(s)]
+s[vif(fit1) > 4]
+
+M = cbind(d$self_dis, d$denial, d$subst_use, d$behav_diseng, d$venting, d$self_blame,
+            d$emo_supo, d$pos_refram, d$humor, d$accept, d$relig,
+            d$act_cop, d$inst_supo, d$planning,
+            d$bdisum, d$previoussuicide_live_all)
+M = round(cor(M)*100) * !diag(length(s))
+rownames(M) = s
+colnames(M) = s
+which.max(M[7,])
+which.max(M[15,])
 ```
 
-
-## ASSIP Group
+### Model w/ correlated regressors self_blame and inst_support
 ```{r}
-i = data.avg$time ==24 & data.avg$ITT == 'ASSIP & ASSIP Drop out'
-d = subset(data.avg, i)
+fit.assip = lm(BSSsum ~ self_dis + denial + subst_use + behav_diseng + venting +
+            emo_supo + pos_refram + humor + accept + relig  +
+            act_cop + planning +
+            bdisum + previoussuicide_live_all, data = d.assip)
 
-fit1 = lm(BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + inst_supo + behav_diseng + 
-            venting + pos_refram + planning + humor + accept + relig  + self_blame + 
-            bdisum + previoussuicide_live_all, data = d)
-fit2 = lm(BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + behav_diseng + 
-           venting + pos_refram + planning + humor + accept + relig + 
-           bdisum + previoussuicide_live_all, data = d)
-
-```
-
-### Multicollinearity
-```{r}
-x = cbind(d$self_dis, d$act_cop, d$denial, d$subst_use, d$emo_supo, d$inst_supo, d$behav_diseng,
-          d$venting, d$pos_refram, d$planning, d$humor, d$accept, d$relig, d$self_blame,
-          d$bdisum, d$previoussuicide_live_all)
-#print(round(cor(x)*100), digits = 2)
-
-vif(fit1) > 4
-vif(fit2) > 4
-```
-
-### Stepwise regression of BSS
-```{r}
-step1 = stepAIC(fit1, direction="both", trace = F)
-step1$anova
-
-step2 = stepAIC(fit2, direction="both", trace = F)
-step2$anova
-```
-
-### Final model
-```{r}
-fit = lm(BSSsum ~ act_cop + subst_use + bdisum + previoussuicide_live_all, data = d)
-# summary(fit)
-tableRegression(fit, xtable = FALSE, stats = c("estimate", "ci.95", "t.value", "p.value"))
-```
-
-Relative importance
-```{r}
-varImp(fit, scale = FALSE)
+fit.cg = lm(BSSsum ~ self_dis + denial + subst_use + behav_diseng + venting +
+            emo_supo + pos_refram + humor + accept + relig  +
+            act_cop + planning +
+            bdisum + previoussuicide_live_all, data = d.cg)
 ```
 
 
-
-## Control Group
+### Stepwise regression of BSS for ASSIP
 ```{r}
-i = data.avg$time ==24 & data.avg$ITT == 'CG & CG Drop out'
-d = subset(data.avg, i)
-
-fit1 = lm(BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + inst_supo + behav_diseng + 
-            venting + pos_refram + planning + humor + accept + relig  + self_blame + 
-            bdisum + previoussuicide_live_all, data = d)
-fit2 = lm(BSSsum ~ self_dis + act_cop + denial + subst_use + emo_supo + behav_diseng + 
-           venting + pos_refram + planning + humor + accept + relig + 
-           bdisum + previoussuicide_live_all, data = d)
-
+step = stepAIC(fit.assip, direction="both", trace = F)
+step$anova
 ```
 
-### Multicollinearity
+### Table Stepwise ASSIP
 ```{r}
-x = cbind(d$self_dis, d$act_cop, d$denial, d$subst_use, d$emo_supo, d$inst_supo, d$behav_diseng,
-          d$venting, d$pos_refram, d$planning, d$humor, d$accept, d$relig, d$self_blame,
-          d$bdisum, d$previoussuicide_live_all)
-#print(round(cor(x)*100), digits = 2)
-
-
-vif(fit1) > 4
-vif(fit2) > 4
+fit = lm(BSSsum ~ subst_use + act_cop + bdisum + previoussuicide_live_all, data = d.assip)
+tab = tableRegression(fit, xtable = FALSE, stats = c("estimate", "ci.95", "t.value", "p.value"))
+tab = tab[2:nrow(tab),]
+idx = order(abs(as.numeric(tab[,3])), decreasing = TRUE)
+tab[idx,]
 ```
 
-### Stepwise regression of BSS
+### Stepwise regression of BSS for CG
 ```{r}
-step1 = stepAIC(fit1, direction="both", trace = F)
-step1$anova
-
-step2 = stepAIC(fit2, direction="both", trace = F)
-step2$anova
-
+step = stepAIC(fit.cg, direction="both", trace = F)
+step$anova
 ```
 
-### Final model
+### Table Stepwise CG
 ```{r}
 fit = lm(BSSsum ~ self_dis + behav_diseng + venting + pos_refram + bdisum + 
-    previoussuicide_live_all, data = d)
-summary(fit)
+    previoussuicide_live_all, data = d.cg)
+tab = tableRegression(fit, xtable = FALSE, stats = c("estimate", "ci.95", "t.value", "p.value"))
+tab = tab[2:nrow(tab),]
+idx = order(abs(as.numeric(tab[,3])), decreasing = TRUE)
+tab[idx,]
 ```
-Relative importance
-```{r}
-varImp(fit, scale = FALSE)
-```
 
-## Figure 1
-```{r, fig.height=2, fig.width=6, message=FALSE, warning=FALSE}
-d = subset(data.avg, t_24)
 
-p1 = ggplot(d, aes(x=ITT, y=dysfunc_cop, color=ITT)) +   geom_boxplot(width=0.8) +
-  geom_point(shape=1, color="gray70", size=1, position = position_jitter(width = 0.3, height = 0.02)) +
-  theme(legend.position="none", axis.text.x=element_blank(), plot.title = element_text(size = 12, face = "plain")) + ylab("Score") +
-  xlab("") + ggtitle("Dysfunctional") + ylim(c(1,4))
- 
-p2 = ggplot(d, aes(x=ITT, y=prob_foc_cop, color=ITT)) +  geom_boxplot(width=0.8) +
-  geom_point(shape=1, color="gray70", size=1, position = position_jitter(width = 0.3, height = 0.02)) +
-  theme(legend.position="none", axis.text.x=element_blank(), plot.title = element_text(size = 12, face = "plain")) + ylab("") +
-  xlab("") + ggtitle("Problem-focused") + ylim(c(1,4))
-
-tmp=scale_colour_hue()
-
-p3 = ggplot(d, aes(x=ITT, y=emo_foc_cop, color=ITT)) +  geom_boxplot(width=0.8) +
-  geom_point(shape=1, color="gray70", size=1, position = position_jitter(width = 0.3, height = 0.02)) +
-  ylab("") + xlab("") + theme(axis.text.x=element_blank(), plot.title = element_text(size = 12, face = "plain")) +
-  ggtitle("Emotion-focused") + scale_color_manual(labels = c("ASSIP", "control\ngroup"), values = tmp$palette(2)) + ylim(c(1,4))
-
-plot_grid(p1, p2, p3, ncol=3, nrow=1, labels=c("A", "B", "C"), rel_widths = c(0.62, 0.62, 1))
-ggsave(path = "figures", "Fig1.png")
-```
 
 ## Figure 2
 ```{r, fig.height=2, fig.width=6}
-
 tmp=scale_colour_hue()
 mylim=c(2,3.5)
 
