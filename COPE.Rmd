@@ -64,7 +64,7 @@ data.0$Children[data$demot1_3_kinder > 0] = "ja"
 data.0$Children = factor(data.0$Children, levels=c("ja", "nein"))
 
 data.0$Employment = rep("nein", N)
-data.0$Employment[data$demo_employment == "berufliche Tätigkeit"] = "ja"
+data.0$Employment[data$Employment_dichotom == "Angestellt&angestell mit krankgeschrieben"] = "ja"
 data.0$Employment = factor(data.0$Employment, levels=c("ja", "nein"))
 ```
 
@@ -188,34 +188,6 @@ table$COPE = c(tapply(data.0$COPE_mean, data.0$group, mean.sd.2),
               )
 
 kable(t(table))
-```
-
-## Baseline BSS sum
-```{r}
-t0=rep(FALSE, 600)
-t0[1:120] = TRUE
-d.base=subset(data.avg, subset = t0)
-
-# mean and SD
-x=array(NA, dim=c(3,2))
-rownames(x)=c("ASSIP", "CG", "Total")
-colnames(x)=c("mean", "SD")
-x[1,]=c(mean(d.base$BSSsum[is.assip]), sd(d.base$BSSsum[is.assip]))
-x[2,]=c(mean(d.base$BSSsum[is.cg]), sd(d.base$BSSsum[is.cg]))
-x[3,]=c(mean(d.base$BSSsum), sd(d.base$BSSsum))
-print(x)
-
-wilcox.test(d.base$BSSsum ~ d.base$ITT, alternative="two.sided", paired=FALSE)
-```
-
-## Baseline COPE
-```{r}
-# mean and SD
-x[1,]=c(mean(d.base$COPE_mean[is.assip]), sd(d.base$COPE_mean[is.assip]))
-x[2,]=c(mean(d.base$COPE_mean[is.cg]), sd(d.base$COPE_mean[is.cg]))
-x[3,]=c(mean(d.base$COPE_mean), sd(d.base$COPE_mean))
-print(x)
-wilcox.test(d.base$COPE_mean ~ d.base$ITT)
 ```
 
 ## Main analyses at 24-month
