@@ -1,7 +1,7 @@
 ---
 title: "COPE"
 author: "Simon Schwab"
-date: "27 Mar 2018"
+date: "21 Dec 2018"
 output: html_notebook
 ---
 
@@ -14,6 +14,7 @@ output: html_notebook
 # install.packages("car")
 # install.packages("caret")
 # install.packages("nlme")
+# install.packages("nortest")
 
 library(MASS)
 library(ggplot2)
@@ -22,30 +23,171 @@ library(Hmisc)
 library(car)
 library(caret)
 library(nlme)
+library(biostatUZH)
+library(knitr)
+library(plyr)
+library(nortest)
+```
 
+## Prepare data set
+```{r}
+# load
 load("COPE_impM20.Rdata")
-```
 
-## Descriptives at 24 months
-```{r}
-
-t_24  = rep(FALSE, N*4)
+# 
+t_24  = rep(FALSE, N*5)
 t_24[481:600] = TRUE;
-#summary(data.avg[t_24,])
+data.24 = subset(data.avg, subset = t_24)
+data.24$group = revalue(data.24$ITT, c("ASSIP & ASSIP Drop out"="ASSIP", "CG & CG Drop out"="Controls"))
+
+t_0  = rep(FALSE, N*5)
+t_0[1:120] = TRUE;
+data.0 = subset(data.avg, subset = t_0)
+data.0$group = revalue(data.0$ITT, c("ASSIP & ASSIP Drop out"="ASSIP", "CG & CG Drop out"="Controls"))
+
+# add F diagnoses for Table 1
+# others is F5 F9
+data.0$F1 = relevel(data$F1, ref="ja")
+data.0$F3 = relevel(data$F3, ref="ja")
+data.0$F4 = relevel(data$F4, ref="ja")
+data.0$F5 = relevel(data$F5, ref="ja")
+data.0$F6 = relevel(data$F6, ref="ja")
+data.0$F9 = relevel(data$F9, ref="ja")
+data.0$FOthers = rep("nein", N)
+data.0$FOthers[data.0$F5 == "ja" | data.0$F9 == "ja"] = "ja"
+data.0$FOthers = factor(data.0$FOthers, levels=c("ja", "nein"))
+
+data.0$Married  = relevel(data$demot1_2_verheiratet, ref="ja")
+
+data.0$Children = rep("nein", N)
+data.0$Children[data$demot1_3_kinder > 0] = "ja"
+data.0$Children = factor(data.0$Children, levels=c("ja", "nein"))
+
+data.0$Employment = rep("nein", N)
+data.0$Employment[data$demo_employment == "berufliche Tätigkeit"] = "ja"
+data.0$Employment = factor(data.0$Employment, levels=c("ja", "nein"))
 ```
 
-## Gender
+## Helper functions
 ```{r}
-summary(data.avg$sex[t_24 & is.assip]) # ASSIP
-summary(data.avg$sex[t_24 & is.cg]) # Control group
-summary(data.avg$sex[t_24]) # all
+mean.sd <- function(x) sprintf("%.1f (%.1f)", mean(x), sd(x))
+mean.sd.2 <- function(x) sprintf("%.2f (%.2f)", mean(x), sd(x))
+fmt.2 <- function(x) sprintf("%.2f", x)
+pct <- function(x,n) round(x/n*100)
 ```
 
-## Age
-```{r}
-c(mean(data.avg$age[t_24 & is.assip]), sd(data.avg$age[t_24 & is.assip]))
-c(mean(data.avg$age[t_24 & is.cg]), sd(data.avg$age[t_24 & is.cg]))
-c(mean(data.avg$age[t_24 ]), sd(data.avg$age[t_24]))
+
+## Table 1 Demographics
+```{r warning=FALSE}
+table = data.frame(n = c(summary(data.0$group), length(data.0$group), "", ""))
+rownames(table) = c(levels(data.0$group), "Total", "Test statistic", "p-value")
+
+tmp = tapply(data.0$sex, data.0$group, summary)
+test = chisq.test(data.frame(ASSIP=tmp$ASSIP, CG=tmp$Controls), correct = F)
+table$sex = c(sprintf('%d/%d', tmp$ASSIP[1], tmp$ASSIP[2]),
+              sprintf('%d/%d', tmp$Controls[1], tmp$Controls[2]),
+              sprintf('%d/%d', summary(data.0$sex)[1], summary(data.0$sex)[2]),
+              paste0('X^2^=',fmt.2(test$statistic)), formatPval(test$p.value))
+              
+# lillie.test(data.0$age)
+test = wilcox.test(data = data.0, age ~ group)
+table$age = c(tapply(data.0$age, data.0$group, mean.sd), mean.sd(data.0$age),
+              paste0("W=",round(test$statistic)), 
+              formatPval(test$p.value))
+
+# Diagnosen
+# others is F5 F9
+n = N/2
+
+tmp = table(data.0$F1, data.0$group)
+test = chisq.test(tmp, correct = F)
+table$F1 = c(sprintf('%d (%d%%)', tmp[1,1], pct(tmp[1,1], n)),
+             sprintf('%d (%d%%)', tmp[1,2], pct(tmp[1,2], n)),
+             sprintf('%d (%d%%)', sum(tmp[1,]), pct(sum(tmp[1,]), N)),
+             paste0('X^2^=',fmt.2(test$statistic)), formatPval(test$p.value)
+             )
+
+tmp = table(data.0$F3, data.0$group)
+test = chisq.test(tmp, correct = F)
+table$F3 = c(sprintf('%d (%d%%)', tmp[1,1], pct(tmp[1,1], n)),
+             sprintf('%d (%d%%)', tmp[1,2], pct(tmp[1,2], n)),
+             sprintf('%d (%d%%)', sum(tmp[1,]), pct(sum(tmp[1,]), N)),
+             paste0('X^2^=',fmt.2(test$statistic)), formatPval(test$p.value)
+             )
+
+tmp = table(data.0$F4, data.0$group)
+test = chisq.test(tmp, correct = F)
+table$F4 = c(sprintf('%d (%d%%)', tmp[1,1], pct(tmp[1,1], n)),
+             sprintf('%d (%d%%)', tmp[1,2], pct(tmp[1,2], n)),
+             sprintf('%d (%d%%)', sum(tmp[1,]), pct(sum(tmp[1,]), N)),
+             paste0('X^2^=',fmt.2(test$statistic)), formatPval(test$p.value)
+             )
+
+tmp = table(data.0$F6, data.0$group)
+test = chisq.test(tmp, correct = F)
+table$F6 = c(sprintf('%d (%d%%)', tmp[1,1], pct(tmp[1,1], n)),
+             sprintf('%d (%d%%)', tmp[1,2], pct(tmp[1,2], n)),
+             sprintf('%d (%d%%)', sum(tmp[1,]), pct(sum(tmp[1,]), N)),
+             paste0('X^2^=',fmt.2(test$statistic)), formatPval(test$p.value)
+             )
+
+tmp = table(data.0$FOthers, data.0$group)
+test = chisq.test(tmp, correct = F)
+table$Other = c(sprintf('%d (%d%%)', tmp[1,1], pct(tmp[1,1], n)),
+             sprintf('%d (%d%%)', tmp[1,2], pct(tmp[1,2], n)),
+             sprintf('%d (%d%%)', sum(tmp[1,]), pct(sum(tmp[1,]), N)),
+             paste0('X^2^=',fmt.2(test$statistic)), formatPval(test$p.value)
+             )
+
+tmp = table(data.0$Married, data.0$group)
+test = chisq.test(tmp, correct = F)
+table$Married = c(sprintf('%d (%d%%)', tmp[1,1], pct(tmp[1,1], n)),
+             sprintf('%d (%d%%)', tmp[1,2], pct(tmp[1,2], n)),
+             sprintf('%d (%d%%)', sum(tmp[1,]), pct(sum(tmp[1,]), N)),
+             paste0('X^2^=',fmt.2(test$statistic)), formatPval(test$p.value)
+             )
+
+tmp = table(data.0$Children, data.0$group)
+test = chisq.test(tmp, correct = F)
+table$Children = c(sprintf('%d (%d%%)', tmp[1,1], pct(tmp[1,1], n)),
+             sprintf('%d (%d%%)', tmp[1,2], pct(tmp[1,2], n)),
+             sprintf('%d (%d%%)', sum(tmp[1,]), pct(sum(tmp[1,]), N)),
+             paste0('X^2^=',fmt.2(test$statistic)), formatPval(test$p.value)
+             )
+
+tmp = table(data.0$Employment, data.0$group)
+test = chisq.test(tmp, correct = F)
+table$Employed = c(sprintf('%d (%d%%)', tmp[1,1], pct(tmp[1,1], n)),
+             sprintf('%d (%d%%)', tmp[1,2], pct(tmp[1,2], n)),
+             sprintf('%d (%d%%)', sum(tmp[1,]), pct(sum(tmp[1,]), N)),
+             paste0('X^2^=',fmt.2(test$statistic)), formatPval(test$p.value)
+             )
+
+# lillie.test(data.0$bdisum)
+test = wilcox.test(data.0$bdisum ~ data.0$group)
+table$BDI = c(tapply(data.0$bdisum, data.0$group, mean.sd),
+              mean.sd(data.0$bdisum),
+              paste0("W=",round(test$statistic)), 
+              formatPval(test$p.value)
+              )
+
+# lillie.test(data.0$BSSsum)
+test = wilcox.test(data.0$BSSsum ~ data.0$group)
+table$BSS = c(tapply(data.0$BSSsum, data.0$group, mean.sd),
+              mean.sd(data.0$BSSsum),
+              paste0("W=",round(test$statistic)), 
+              formatPval(test$p.value)
+              )
+
+# lillie.test(data.0$COPE_mean)
+test = wilcox.test(data.0$COPE_mean ~ data.0$group)
+table$COPE = c(tapply(data.0$COPE_mean, data.0$group, mean.sd.2),
+              mean.sd.2(data.0$COPE_mean),
+              paste0("W=",round(test$statistic)), 
+              formatPval(test$p.value)
+              )
+
+kable(t(table))
 ```
 
 ## Baseline BSS sum
@@ -184,7 +326,8 @@ step2$anova
 ### Final model
 ```{r}
 fit = lm(BSSsum ~ act_cop + subst_use + bdisum + previoussuicide_live_all, data = d)
-summary(fit)
+# summary(fit)
+tableRegression(fit, xtable = FALSE, stats = c("estimate", "ci.95", "t.value", "p.value"))
 ```
 
 Relative importance
