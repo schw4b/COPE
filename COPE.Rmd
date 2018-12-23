@@ -1,7 +1,7 @@
 ---
 title: "COPE"
 author: "Simon Schwab"
-date: "22 Dec 2018"
+date: "23 Dec 2018"
 output: html_notebook
 ---
 
@@ -288,6 +288,34 @@ fit=manova(cbind(act_cop,
 summary(fit)
 ```
 
+## Figure 2
+```{r, fig.height=2, fig.width=6}
+tmp=scale_colour_hue()
+mylim=c(2,3.5)
+
+p1 = ggplot(data.avg, aes(x=as.factor(time), y=self_dis, group=ITT, color=ITT)) +
+  stat_summary(geom = "line", fun.y=mean) +
+  stat_summary(geom = "point", fun.y=mean, size=3) +
+  stat_summary(geom="errorbar", fun.data=mean_cl_boot, width = 0.3,
+               fun.args=list(conf.int=0.95)) +
+  theme(legend.position="none") + ggtitle("Self-distraction") + xlab("follow-up") + 
+  ylab("Score") + theme(plot.title = element_text(size = 12, face = "plain")) +
+  coord_cartesian(ylim=mylim)
+
+p2 = ggplot(data.avg, aes(x=as.factor(time), y=self_blame, group=ITT, color=ITT)) +
+  stat_summary(geom = "line", fun.y=mean) +
+  stat_summary(geom = "point", fun.y=mean, size=3) +
+  stat_summary(geom = "errorbar", fun.data=mean_cl_boot, width = 0.3,
+               fun.args=list(conf.int=0.95)) +
+  scale_color_manual(labels = c("ASSIP", "control\ngroup"), values = tmp$palette(2)) +
+  ggtitle("Self-blame") + xlab("follow-up") + ylab("") +
+  theme(plot.title = element_text(size = 12, face = "plain")) +
+  coord_cartesian(ylim=mylim)
+  
+plot_grid(p1, p2, ncol=2, nrow=1, labels=c("A", "B"), rel_widths = c(0.7, 1))
+ggsave(path = "figures", "Fig2.png")
+```
+
 ## Regression
 ### Multicollinearity ASSIP
 ```{r}
@@ -381,51 +409,24 @@ idx = order(abs(as.numeric(tab[,3])), decreasing = TRUE)
 tab[idx,]
 ```
 
-
-
-## Figure 2
-```{r, fig.height=2, fig.width=6}
-tmp=scale_colour_hue()
-mylim=c(2,3.5)
-
-p1 = ggplot(data.avg, aes(x=as.factor(time), y=self_dis, group=ITT, color=ITT)) +
-  stat_summary(geom = "line", fun.y=mean) +
-  stat_summary(geom = "point", fun.y=mean, size=3) +
-  stat_summary(geom="errorbar", fun.data=mean_cl_boot, width = 0.3,
-               fun.args=list(conf.int=0.95)) +
-  theme(legend.position="none") + ggtitle("Self-distraction") + xlab("follow-up") + 
-  ylab("Score") + theme(plot.title = element_text(size = 12, face = "plain")) +
-  coord_cartesian(ylim=mylim)
-
-p2 = ggplot(data.avg, aes(x=as.factor(time), y=self_blame, group=ITT, color=ITT)) +
-  stat_summary(geom = "line", fun.y=mean) +
-  stat_summary(geom = "point", fun.y=mean, size=3) +
-  stat_summary(geom = "errorbar", fun.data=mean_cl_boot, width = 0.3,
-               fun.args=list(conf.int=0.95)) +
-  scale_color_manual(labels = c("ASSIP", "control\ngroup"), values = tmp$palette(2)) +
-  ggtitle("Self-blame") + xlab("follow-up") + ylab("") +
-  theme(plot.title = element_text(size = 12, face = "plain")) +
-  coord_cartesian(ylim=mylim)
-  
-plot_grid(p1, p2, ncol=2, nrow=1, labels=c("A", "B"), rel_widths = c(0.7, 1))
-ggsave(path = "figures", "Fig2.png")
-```
-
-
 ## Cross table for self blame
-### Prepare data for cross table
+### Determine persons with repeated attempts at any follow-up.
 ```{r}
 t1=121:240
 t2=241:360
 t3=361:480
 t4=481:600
 
-t=0.69
+t=0.69 # threshold
 rep = (data.avg$repeater[t1] > t) | (data.avg$repeater[t2] > t) |
       (data.avg$repeater[t3] > t) | (data.avg$repeater[t4] > t)
 
-my.d24 = subset(data.avg, data.avg$time==24)
-my.d24$rep = rep
+rep.missing = (data.avg$repeater[t1] == 1) | (data.avg$repeater[t2] == 1) |
+      (data.avg$repeater[t3] == 1) | (data.avg$repeater[t4] == 1)
+
+
+data.24$rep = rep # repeater at any follow-up
+data.24$rep.missing = rep.missing # repeater at any follow-up without imputations
 ```
 
 ### Cross-check with Plos Med paper Table 2 and comparision to imputed data
@@ -443,37 +444,61 @@ colnames(x)=c("ASSIP", "CG", "ASSIP (imp)", "CG (imp)")
 rownames(x)=c("6m", "12m", "18m", "24m")
 print(x)
 ```
-Imputationd created additonal repeater in the control group, this group had 22% missing data.
+Imputationd created additonal repeated attempts in the control group, this group had 22% missing data.
 
-### Repeater 1-24m
+### Persons with repeated attepts at any follow-up 6m-24m
 ```{r}
-c(sum(my.d24$rep[is.assip]), sum(my.d24$rep[is.cg]))
+tab = array(NA, dim=c(2,2))
+tab[1,] = c(sum(data.24$rep.missing[is.assip]), sum(data.24$rep.missing[is.cg]))
+tab[2,] = c(sum(data.24$rep[is.assip]), sum(data.24$rep[is.cg]))
+rownames(tab) = c("Witout impuations", "imputed data")
+colnames(tab) = c("Control", "ASSIP")
+print(tab)
+```
+There are 5 persons with ASSIP that have repeated attempts and 20 persons of the controls with repeated attempts.
+
+
+### Prepare crosstable
+```{r}
+data.24$self_blame.fac = rep("low", N)
+data.24$self_blame.fac[data.24$self_blame >= 3] = "high"
+data.24$self_blame.fac = factor(data.24$self_blame.fac, levels = c("low", "high"))
+
+data.24$rep.fac = rep("No attempts", N)
+data.24$rep.fac[data.24$rep] = "Repeated attempts"
+data.24$rep.fac = factor(data.24$rep.fac, levels = c("Repeated attempts", "No attempts"))
 ```
 
-### Control Group
+### Crosstable for ASSIP
 ```{r}
-sb=round(my.d24$self_blame)
-x=array(c(sum(is.cg & my.d24$rep & (sb >= 1 & sb <= 2) ), sum(is.cg & !my.d24$rep & (sb >= 1 & sb <= 2) ),
-          sum(is.cg & my.d24$rep & sb > 2), sum(is.cg & !my.d24$rep & sb > 2 )),
-        dim=c(2,2))
-colnames(x)=c("1-2", "2-4")
-rownames(x)=c("repeater", "no repeater")
-print(x)
-
-# Percentage
-print(x/rowSums(x))
+d = subset(data.24, subset = is.assip)
+ctab = table(d$rep.fac, d$self_blame.fac)
+ctab_prc = ctab/N*100
+tab = array(c(sprintf('%d (%.1f%%)', ctab[1,1], ctab_prc[1,1]),
+              sprintf('%d (%.1f%%)', ctab[2,1], ctab_prc[2,1]),
+              sprintf('%d (%.1f%%)', ctab[1,2], ctab_prc[1,2]),
+              sprintf('%d (%.1f%%)', ctab[2,2], ctab_prc[2,2])
+              ), dim = c(2,2)
+            )
+rownames(tab) = rownames(ctab)
+colnames(tab) = colnames(ctab)
+print(tab)
 ```
 
-### ASSIP
+### Crosstable for Controls
 ```{r}
-x=array(c(sum(is.assip & my.d24$rep & (sb >= 1 & sb <= 2) ), sum(is.assip & !my.d24$rep & (sb >= 1 & sb <= 2) ),
-          sum(is.assip & my.d24$rep & sb > 2), sum(is.assip & !my.d24$rep & sb > 2 )),
-        dim=c(2,2))
-colnames(x)=c("1-2", "2-4")
-rownames(x)=c("repeater", "no repeater")
-print(x)
-
-# Percentage
-print(x/rowSums(x))
+d = subset(data.24, subset = is.cg)
+ctab = table(d$rep.fac, d$self_blame.fac)
+ctab_prc = ctab/N*100
+tab = array(c(sprintf('%d (%.1f%%)', ctab[1,1], ctab_prc[1,1]),
+              sprintf('%d (%.1f%%)', ctab[2,1], ctab_prc[2,1]),
+              sprintf('%d (%.1f%%)', ctab[1,2], ctab_prc[1,2]),
+              sprintf('%d (%.1f%%)', ctab[2,2], ctab_prc[2,2])
+              ), dim = c(2,2)
+            )
+rownames(tab) = rownames(ctab)
+colnames(tab) = colnames(ctab)
+print(tab)
 ```
+
 
