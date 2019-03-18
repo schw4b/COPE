@@ -1,12 +1,12 @@
 ---
 title: "COPE"
 author: "Simon Schwab"
-date: "23 Dec 2018"
+date: "18 Mar 2019"
 output: html_notebook
 ---
 
 ## Libraries and loading data
-```{r}
+```{r message=FALSE, warning=FALSE}
 # install.packages("MASS")
 # install.packages("ggplot2")
 # install.packages("cowplot")
@@ -15,6 +15,8 @@ output: html_notebook
 # install.packages("caret")
 # install.packages("nlme")
 # install.packages("nortest")
+# install.packages("mice")
+# install.packages("sjstats")
 
 library(MASS)
 library(ggplot2)
@@ -27,12 +29,23 @@ library(biostatUZH)
 library(knitr)
 library(plyr)
 library(nortest)
+library(mice)
+library(sjstats)
 ```
 
 ## Prepare data set
 ```{r}
-# load
-load("COPE_impM20.Rdata")
+# save minimal dataset to reproduce the results
+# load("COPE_impM20.Rdata")
+# data = data[,c("F1", "F3", "F4", "F5", "F6", "F9", "demot1_2_verheiratet",
+#                "demot1_3_kinder", "Employment_dichotom")]
+# save(list = c("data", "data.avg", "data.imp.mod", "imp.mice"), file="COPE_impM20-reduced.Rdata")
+load("COPE_impM20-reduced.Rdata")
+N = 120
+
+is.assip = data.avg$ITT[1:N] == "ASSIP & ASSIP Drop out"
+is.cg = data.avg$ITT[1:N] == "CG & CG Drop out"
+data.avg$group = revalue(data.avg$ITT, c("ASSIP & ASSIP Drop out"="ASSIP", "CG & CG Drop out"="Controls"))
 
 data.24 = subset(data.avg, subset = time==24)
 data.24$group = revalue(data.24$ITT, c("ASSIP & ASSIP Drop out"="ASSIP", "CG & CG Drop out"="Controls"))
@@ -184,136 +197,244 @@ table$COPE = c(tapply(data.0$COPE_mean, data.0$group, mean.sd.2),
 
 kable(t(table))
 ```
+## Check distribution of main variables
+```{r}
+a = lillie.test(data.24$dysfunc_cop)
+b = lillie.test(data.24$prob_foc_cop)
+c = lillie.test(data.24$emo_foc_cop)
+tab = array(formatPval(c(a$p.value, b$p.value, c$p.value)), dim=c(1,3))
+colnames(tab) = c("dysfunctional scores", "problem-focussed scores", "emotion-focussed scores")
+rownames(tab) = "test for normality"
+print(tab)
+```
 
 ## Main analyses at 24-month
 ```{r}
-tapply(data.24$dysfunc_cop, data.24$ITT, median)
-wilcox.test(dysfunc_cop ~ ITT, data=data.24)
-1-median(data.24$dysfunc_cop[is.assip])/median(data.24$dysfunc_cop[is.cg])
+tab = array(NA, dim = c(3,6))
+rownames(tab) = c("dysfunctional coping", "problem-focused", "emotional-focused")
+colnames(tab) = c("median ASSIP", "median CG", "rel. difference", "test statistic", "p-value", "effect size r")
 
-tapply(data.24$prob_foc_cop, data.24$ITT, median)
-wilcox.test(prob_foc_cop ~ ITT, data=data.24)
-median(data.24$prob_foc_cop[is.assip])/median(data.24$prob_foc_cop[is.cg])
+tab[1,1:2] = round(tapply(data.24$dysfunc_cop, data.24$ITT, median), digits = 2)
+tab[1,3] = round(1-median(data.24$dysfunc_cop[is.assip])/median(data.24$dysfunc_cop[is.cg]), digits = 2)
+test = wilcox.test(dysfunc_cop ~ ITT, data=data.24)
+tab[1,4] = test$statistic
+tab[1,5] = formatPval(test$p.value)
+tab[1,6] = round(abs(qnorm(test$p.value))/sqrt(N), digits = 2)
 
-wilcox.test(emo_foc_cop ~ ITT, data=data.24)
+
+tab[2,1:2] = round(tapply(data.24$prob_foc_cop, data.24$ITT, median), digits = 2)
+tab[2,3] = round(median(data.24$prob_foc_cop[is.assip])/median(data.24$prob_foc_cop[is.cg])-1, digits = 2)
+test = wilcox.test(prob_foc_cop ~ ITT, data=data.24)
+tab[2,4] = test$statistic
+tab[2,5] = formatPval(test$p.value)
+tab[2,6] = round(abs(qnorm(test$p.value))/sqrt(N), digits = 2)
+
+tab[3,1:2] = round(tapply(data.24$emo_foc_cop, data.24$ITT, median), digits = 2)
+tab[3,3] = round(median(data.24$emo_foc_cop[is.assip])/median(data.24$emo_foc_cop[is.cg])-1, digits = 2)
+test = wilcox.test(emo_foc_cop ~ ITT, data=data.24)
+tab[3,4] = test$statistic
+tab[3,5] = formatPval(test$p.value)
+tab[3,6] = round(abs(qnorm(test$p.value))/sqrt(N), digits = 2)
+
+print(tab)
 ```
 
+### Same analysis for imputed dataset
+```{r}
+pvals = array(NA, dim=c(3,20))
+for (i in 1:20) {
+  data.imp.mice=complete(imp.mice,i)
+  tmp = wilcox.test(dysfunc_cop ~ ITT, data=data.imp.mice)
+  pvals[1,i] = tmp$p.value
+  tmp = wilcox.test(prob_foc_cop ~ ITT, data=data.imp.mice)
+  pvals[2,i] = tmp$p.value
+  tmp = wilcox.test(emo_foc_cop ~ ITT, data=data.imp.mice)
+  pvals[3,i] = tmp$p.value
+}
+
+pvals.lil = array(NA, dim=c(1,3))
+x = lillie.test(pvals[1,])
+pvals.lil[1,1] = x$p.value
+x = lillie.test(pvals[2,])
+pvals.lil[1,2] = x$p.value
+x = lillie.test(pvals[2,])
+pvals.lil[1,3] = x$p.value
+out = array(formatPval(pvals.lil), dim=c(1,3))
+rownames(out) = "test for normality of p-values"
+colnames(out) = c("dysfunctional","problem-focussed", "emotional-focussed")
+print(out)
+
+tab = array(NA, dim=c(3,3))
+for (i in 1:3) {
+  SE = sd(pvals[i,])/sqrt(length(pvals[i,]))
+  tab[i,] = c(mean(pvals[i,]), mean(pvals[i,]) - 1.96*SE, mean(pvals[i,]) + 1.96*SE)
+}
+tab = array(formatPval(tab), dim=c(3,3))
+rownames(tab) = c("dysfunctional","problem-focussed", "emotional-focussed")
+colnames(tab) = c("mean p-value","95-CI", "")
+print(tab)
+```
+
+
 ## Figure 1
-```{r, fig.height=2, fig.width=6, message=FALSE, warning=FALSE}
-p1 = ggplot(data.24, aes(x=ITT, y=dysfunc_cop, color=ITT)) +   geom_boxplot(width=0.8) +
-  geom_point(shape=1, color="gray70", size=1, position = position_jitter(width = 0.3, height = 0.01)) +
-  theme(legend.position="none", axis.text.x=element_blank(), plot.title = element_text(size = 11, face = "plain")) +
-  ylab("Score") + xlab("") + ggtitle("Dysfunctional") + ylim(c(1,4))
+```{r, fig.height=2.5, fig.width=4.5, message=FALSE, warning=FALSE}
+p1 = ggplot(data.24, aes(x=ITT, y=dysfunc_cop, color="black")) +   geom_boxplot(width=0.8) +
+  geom_point(shape=1, color="gray50", size=0.5, position = position_jitter(width = 0.3, height = 0)) +
+  theme(legend.position="none", axis.text.x = element_text(angle = 45, hjust = 1, size=12), 
+        plot.title = element_text(size = 11, face = "plain")) +
+  ylab("Score") + xlab("") + ggtitle("Dysfunctional\n") + ylim(c(1,4)) + scale_colour_grey() +
+  scale_x_discrete(labels=c("ASSIP", "Controls"))
 
-p2 = ggplot(data.24, aes(x=ITT, y=prob_foc_cop, color=ITT)) +  geom_boxplot(width=0.8) +
-  geom_point(shape=1, color="gray70", size=1, position = position_jitter(width = 0.3, height = 0.01)) +
-  theme(legend.position="none", axis.text.x=element_blank(), plot.title = element_text(size = 11, face = "plain")) +
-  ylab("") + xlab("") + ggtitle("Problem-focused") + ylim(c(1,4))
+p2 = ggplot(data.24, aes(x=ITT, y=prob_foc_cop, color="black")) +  geom_boxplot(width=0.8) +
+  geom_point(shape=1, color="gray50", size=0.5, position = position_jitter(width = 0.3, height = 0)) +
+  theme(legend.position="none", axis.text.x=element_text(angle = 45, hjust = 1, size=12),
+        plot.title = element_text(size = 11, face = "plain")) +
+  ylab("") + xlab("") + ggtitle("Problem-\nfocussed") + ylim(c(1,4)) + scale_colour_grey() +
+  scale_x_discrete(labels=c("ASSIP", "Controls"))
 
-tmp=scale_colour_hue()
+p3 = ggplot(data.24, aes(x=ITT, y=emo_foc_cop, color="black")) +  geom_boxplot(width=0.8) +
+  geom_point(shape=1, color="gray50", size=0.5, position = position_jitter(width = 0.3, height = 0)) +
+  ylab("") + xlab("") + theme(legend.position="none", axis.text.x=element_text(angle = 45, hjust = 1, size=12),
+                              plot.title = element_text(size = 11, face = "plain")) +
+  ggtitle("Emotion-\nfocussed") + scale_color_manual(labels = c("ASSIP", "control\ngroup")) +
+  ylim(c(1,4)) + scale_colour_grey() + scale_x_discrete(labels=c("ASSIP", "Controls"))
 
-p3 = ggplot(data.24, aes(x=ITT, y=emo_foc_cop, color=ITT)) +  geom_boxplot(width=0.8) +
-  geom_point(shape=1, color="gray70", size=1, position = position_jitter(width = 0.3, height = 0.01)) +
-  ylab("") + xlab("") + theme(axis.text.x=element_blank(), plot.title = element_text(size = 11, face = "plain")) +
-  ggtitle("Emotion-focused") + scale_color_manual(labels = c("ASSIP", "control\ngroup"), values = tmp$palette(2)) +
-  ylim(c(1,4))
-
-plot_grid(p1, p2, p3, ncol=3, nrow=1, labels=c("A", "B", "C"), rel_widths = c(0.55, 0.55, 1))
-ggsave(path = "figures", "Fig1.png")
+plot_grid(p1, p2, p3, ncol=3, nrow=1, labels=c("A", "B", "C"), rel_widths = c(1, 1, 1))
+ggsave(path = "figures", "Fig1-bw.png")
 ```
 
 ## MANOVA
-### Dysfunctional coping
+### Dysfunctional coping and problem-focused coping
 ```{r}
 data.avg$id_nr = as.factor(data.avg$id_nr)
 data.avg$time = as.factor(data.avg$time)
-d=data.avg
+d=subset(data.avg, subset = time != 0)
 
 # Six subscales of dysfunctional coping
+# Three subscales of problem-focused coping
 fit=manova(cbind(self_dis, denial, subst_use,
-                 behav_diseng, venting, self_blame) ~ (time*ITT)+Error(id_nr/time) + ITT, data=d)
+                 behav_diseng, venting, self_blame,
+                 act_cop, inst_supo, planning) ~ (time*ITT)+Error(id_nr/time) + ITT, data=d)
+
 summary(fit)
 ```
 
 ### Single ANOVAS
 ```{r}
-tab = data.frame(F=rep(NA, 6), df1=rep(NA, 6), df2=rep(NA, 6), pval=rep(NA, 6))
+tab = data.frame(F=rep(NA, 9), df1=rep(NA, 9), df2=rep(NA, 9), pval=rep(NA, 9), eta.sq = rep(NA, 9))
 rownames(tab) = c("self_dis", "denial", "subst_use",
-                 "behav_diseng", "venting", "self_blame")
+                 "behav_diseng", "venting", "self_blame",
+                 "act_cop", "inst_supo", "planning")
 
-fit = summary(aov(self_dis ~ (time*ITT)+Error(id_nr/time) + ITT , data=d))
+fit = aov(self_dis ~ (time*ITT)+Error(id_nr/time) + ITT , data=d)
+es = eta_sq(fit)
+fit = summary(fit)
 tab[1,] = c(fmt.2(fit$`Error: id_nr:time`[[1]]$`F value`[2]),
             fit$`Error: id_nr:time`[[1]]$Df[2],
             fit$`Error: id_nr:time`[[1]]$Df[3],
-            formatPval(fit$`Error: id_nr:time`[[1]]$`Pr(>F)`[2]))
+            formatPval(fit$`Error: id_nr:time`[[1]]$`Pr(>F)`[2]),
+            round(es$etasq[4], digits = 2))
 
-fit = summary(aov(denial ~ (time*ITT)+Error(id_nr/time) + ITT , data=d))
+fit = aov(denial ~ (time*ITT)+Error(id_nr/time) + ITT , data=d)
+es = eta_sq(fit)
+fit = summary(fit)
 tab[2,] = c(fmt.2(fit$`Error: id_nr:time`[[1]]$`F value`[2]),
             fit$`Error: id_nr:time`[[1]]$Df[2],
             fit$`Error: id_nr:time`[[1]]$Df[3],
-            formatPval(fit$`Error: id_nr:time`[[1]]$`Pr(>F)`[2]))
+            formatPval(fit$`Error: id_nr:time`[[1]]$`Pr(>F)`[2]),
+            round(es$etasq[4], digits = 2))
 
-fit = summary(aov(subst_use ~ (time*ITT)+Error(id_nr/time) + ITT , data=d))
+fit = aov(subst_use ~ (time*ITT)+Error(id_nr/time) + ITT , data=d)
+es = eta_sq(fit)
+fit = summary(fit)
 tab[3,] = c(fmt.2(fit$`Error: id_nr:time`[[1]]$`F value`[2]),
             fit$`Error: id_nr:time`[[1]]$Df[2],
             fit$`Error: id_nr:time`[[1]]$Df[3],
-            formatPval(fit$`Error: id_nr:time`[[1]]$`Pr(>F)`[2]))
+            formatPval(fit$`Error: id_nr:time`[[1]]$`Pr(>F)`[2]),
+            round(es$etasq[4], digits = 2))
 
-fit = summary(aov(behav_diseng ~ (time*ITT)+Error(id_nr/time) + ITT , data=d))
+fit = aov(behav_diseng ~ (time*ITT)+Error(id_nr/time) + ITT , data=d)
+es = eta_sq(fit)
+fit = summary(fit)
 tab[4,] = c(fmt.2(fit$`Error: id_nr:time`[[1]]$`F value`[2]),
             fit$`Error: id_nr:time`[[1]]$Df[2],
             fit$`Error: id_nr:time`[[1]]$Df[3],
-            formatPval(fit$`Error: id_nr:time`[[1]]$`Pr(>F)`[2]))
+            formatPval(fit$`Error: id_nr:time`[[1]]$`Pr(>F)`[2]),
+            round(es$etasq[4], digits = 2))
 
 fit = summary(aov(venting ~ (time*ITT)+Error(id_nr/time) + ITT , data=d))
 tab[5,] = c(fmt.2(fit$`Error: id_nr:time`[[1]]$`F value`[2]),
             fit$`Error: id_nr:time`[[1]]$Df[2],
             fit$`Error: id_nr:time`[[1]]$Df[3],
-            formatPval(fit$`Error: id_nr:time`[[1]]$`Pr(>F)`[2]))
+            formatPval(fit$`Error: id_nr:time`[[1]]$`Pr(>F)`[2]),
+            round(es$etasq[4], digits = 2))
 
-fit = summary(aov(self_blame ~ (time*ITT)+Error(id_nr/time) + ITT , data=d))
+fit = aov(self_blame ~ (time*ITT)+Error(id_nr/time) + ITT , data=d)
+es = eta_sq(fit)
+fit = summary(fit)
 tab[6,] = c(fmt.2(fit$`Error: id_nr:time`[[1]]$`F value`[2]),
             fit$`Error: id_nr:time`[[1]]$Df[2],
             fit$`Error: id_nr:time`[[1]]$Df[3],
-            formatPval(fit$`Error: id_nr:time`[[1]]$`Pr(>F)`[2]))
+            formatPval(fit$`Error: id_nr:time`[[1]]$`Pr(>F)`[2]),
+            round(es$etasq[4], digits = 2))
 
+fit = aov(act_cop ~ (time*ITT)+Error(id_nr/time) + ITT , data=d)
+es = eta_sq(fit)
+fit = summary(fit)
+tab[7,] = c(fmt.2(fit$`Error: id_nr:time`[[1]]$`F value`[2]),
+            fit$`Error: id_nr:time`[[1]]$Df[2],
+            fit$`Error: id_nr:time`[[1]]$Df[3],
+            formatPval(fit$`Error: id_nr:time`[[1]]$`Pr(>F)`[2]),
+            round(es$etasq[4], digits = 2))
+
+fit = aov(inst_supo ~ (time*ITT)+Error(id_nr/time) + ITT , data=d)
+es = eta_sq(fit)
+fit = summary(fit)
+tab[8,] = c(fmt.2(fit$`Error: id_nr:time`[[1]]$`F value`[2]),
+            fit$`Error: id_nr:time`[[1]]$Df[2],
+            fit$`Error: id_nr:time`[[1]]$Df[3],
+            formatPval(fit$`Error: id_nr:time`[[1]]$`Pr(>F)`[2]),
+            round(es$etasq[4], digits = 2))
+
+fit =aov(planning ~ (time*ITT)+Error(id_nr/time) + ITT , data=d)
+es = eta_sq(fit)
+fit = summary(fit)
+tab[9,] = c(fmt.2(fit$`Error: id_nr:time`[[1]]$`F value`[2]),
+            fit$`Error: id_nr:time`[[1]]$Df[2],
+            fit$`Error: id_nr:time`[[1]]$Df[3],
+            formatPval(fit$`Error: id_nr:time`[[1]]$`Pr(>F)`[2]),
+            round(es$etasq[4], digits = 2))
 kable(tab)
-```
-
-### Problem-focused coping
-```{r}
-fit=manova(cbind(act_cop,
-                 inst_supo,
-                 planning) ~ (time*ITT)+Error(id_nr/time) + ITT, data=d)
-summary(fit)
 ```
 
 ## Figure 2
 ```{r, fig.height=2, fig.width=6}
-tmp=scale_colour_hue()
 mylim=c(2,3.5)
 
-p1 = ggplot(data.avg, aes(x=as.factor(time), y=self_dis, group=ITT, color=ITT)) +
+# color = ITT for color figure
+
+p1 = ggplot(data.avg, aes(x=as.factor(time), y=self_dis, group=ITT, color=group)) +
   stat_summary(geom = "line", fun.y=mean) +
   stat_summary(geom = "point", fun.y=mean, size=3) +
   stat_summary(geom="errorbar", fun.data=mean_cl_boot, width = 0.3,
                fun.args=list(conf.int=0.95)) +
+  scale_color_manual(labels = c("ASSIP", "Controls"), values = c("black", "gray60")) +
   theme(legend.position="none") + ggtitle("Self-distraction") + xlab("follow-up") + 
   ylab("Score") + theme(plot.title = element_text(size = 12, face = "plain")) +
   coord_cartesian(ylim=mylim)
 
-p2 = ggplot(data.avg, aes(x=as.factor(time), y=self_blame, group=ITT, color=ITT)) +
+p2 = ggplot(data.avg, aes(x=as.factor(time), y=self_blame, group=ITT, color=group)) +
   stat_summary(geom = "line", fun.y=mean) +
   stat_summary(geom = "point", fun.y=mean, size=3) +
   stat_summary(geom = "errorbar", fun.data=mean_cl_boot, width = 0.3,
                fun.args=list(conf.int=0.95)) +
-  scale_color_manual(labels = c("ASSIP", "control\ngroup"), values = tmp$palette(2)) +
+  scale_color_manual(labels = c("ASSIP", "Controls"), values = c("black", "gray60")) +
   ggtitle("Self-blame") + xlab("follow-up") + ylab("") +
   theme(plot.title = element_text(size = 12, face = "plain")) +
   coord_cartesian(ylim=mylim)
   
-plot_grid(p1, p2, ncol=2, nrow=1, labels=c("A", "B"), rel_widths = c(0.7, 1))
-ggsave(path = "figures", "Fig2.png")
+plot_grid(p1, p2, ncol=2, nrow=1, labels=c("A", "B"), rel_widths = c(0.65, 1)) # c(0.65, 1))
+ggsave(path = "figures", "Fig2-bw.png")
 ```
 
 ## Regression
@@ -387,6 +508,7 @@ step$anova
 ### Table Stepwise ASSIP
 ```{r}
 fit = lm(BSSsum ~ subst_use + act_cop + bdisum + previoussuicide_live_all, data = d.assip)
+summary(fit)
 tab = tableRegression(fit, xtable = FALSE, stats = c("estimate", "ci.95", "t.value", "p.value"))
 tab = tab[2:nrow(tab),]
 idx = order(abs(as.numeric(tab[,3])), decreasing = TRUE)
@@ -403,6 +525,7 @@ step$anova
 ```{r}
 fit = lm(BSSsum ~ self_dis + behav_diseng + venting + pos_refram + bdisum + 
     previoussuicide_live_all, data = d.cg)
+summary(fit)
 tab = tableRegression(fit, xtable = FALSE, stats = c("estimate", "ci.95", "t.value", "p.value"))
 tab = tab[2:nrow(tab),]
 idx = order(abs(as.numeric(tab[,3])), decreasing = TRUE)
